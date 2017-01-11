@@ -69,7 +69,7 @@ import os
 import logging, sys
 
 debug = 5;
-interframe_delay=0.02
+interframe_delay=0.04
 serial_port = 'COM3'
 
 def fast_init():
@@ -144,6 +144,17 @@ def get_rpm():
     
     return rpm
     
+def get_rpm_error():
+    response=send_packet(b"\x02\x21\x21",6)
+    if len(response)<6:
+        rpm_error=0
+    else:
+        rpm_error=ord(response[3])*256+ord(response[4])
+    
+    if rpm_error>32768:
+        rpm_error=rpm_error-65537
+    return rpm_error
+    
 def get_bvolt():
     response=send_packet(b"\x02\x21\x10",8)
     if len(response)<8:
@@ -179,6 +190,64 @@ def get_temps():
         
     return t_coolant, t_air, t_ext, t_fuel
     
+def get_throttle():
+    response=send_packet(b"\x02\x21\x1B",14)
+    if len(response)<14:
+        p1=0
+        p2=0
+        p3=0
+        p4=0
+        supply=0
+    else:
+        p1=float(ord(response[3])*256+ord(response[4]))/1000
+        p2=float(ord(response[5])*256+ord(response[6]))/1000
+        p3=float(ord(response[7])*256+ord(response[8]))/1000
+        p4=float(ord(response[9])*256+ord(response[10]))/1000
+        supply=float(ord(response[11])*256+ord(response[12]))/1000
+    
+    
+    return p1, p2, p3, p4, supply
+    
+def get_aap_maf():
+    debug=5
+    response=send_packet(b"\x02\x21\x1C",12)
+    if len(response)<14:
+        aap=0
+        maf=0   #?? Is ok?
+    else:
+        aap=ord(response[3])*256+ord(response[4])
+        maf=ord(response[7])*256+ord(response[8])
+       
+    return aap, maf
+    
+def get_power_balance():
+    response=send_packet(b"\x02\x21\x40",14)
+    if len(response)<14:
+        pb1=0
+        pb2=0
+        pb3=0
+        pb4=0
+        pb5=0
+    else:
+        pb1=ord(response[3])*256+ord(response[4])
+        pb2=ord(response[5])*256+ord(response[6])
+        pb3=ord(response[7])*256+ord(response[8])
+        pb4=ord(response[9])*256+ord(response[10])
+        pb5=ord(response[11])*256+ord(response[12])
+       
+    if pb1>32768:
+        pb1=pb1-65537
+    if pb2>32768:
+        pb2=pb2-65537
+    if pb3>32768:
+        pb3=pb3-65537
+    if pb4>32768:
+        pb4=pb4-65537
+    if pb5>32768:
+        pb5=pb5-65537
+        
+    return pb1,pb2,pb3,pb4,pb5
+    
     
 os.system("cls")
 print ""
@@ -205,7 +274,7 @@ if (len(response)==6):
 time.sleep(0.1)
 response=send_packet(b"\x02\x21\x02",15)             #Start Diagnostics
 
-time.sleep(2)
+time.sleep(0.5)
 
 debug=0
 
@@ -213,19 +282,27 @@ debug=0
 while (True):
     b_voltage=get_bvolt()
     rpm=get_rpm()
+    rpm_error=get_rpm_error()
     speed=get_speed()
     t_coolant, t_air, t_ext, t_fuel =get_temps()
+    p1, p2, p3, p4, supply = get_throttle()
+    aap, maf = get_aap_maf()
+    pb1,pb2,pb3,pb4,pb5=get_power_balance()
     
     os.system("cls")
     print "\t\t Td5 Storm"
     print " "
     print "\t Bateria Tentsioa: ", str(b_voltage), " Volt"
     print "\t RPM: ", str(rpm)
+    print "\t RPM Error: ", str(rpm_error)
     print "\t Abiadura: ", str(speed), " KMH"
     print "\t Uraren tenperatura: ", str(t_coolant), " C"
     print "\t Airearen tenperatura: ", str(t_air), " C"
     print "\t Kanpoko tenperatura: ", str(t_ext), " C"
     print "\t Gasoilaren tenperatura: ", str(t_fuel), " C"
+    print "\t Azeleragailuen pistak (Volt): ", str(p1), " ", str(p2), " ", str(p3), " ", str(p4), " ", str(supply)
+    print "\t AAP - MAF (Units?): ", str(aap), " ", str(maf)
+    print "\t Zilindroak (Units?): ", str(pb1), " ", str(pb2), " ", str(pb3), " ", str(pb4), " ", str(pb5)
 
 
 ser.close()
