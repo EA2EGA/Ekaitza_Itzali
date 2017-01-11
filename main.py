@@ -69,6 +69,7 @@ import os
 import logging, sys
 
 debug = 5;
+interframe_delay=0.02
 serial_port = 'COM3'
 
 def fast_init():
@@ -79,6 +80,8 @@ def fast_init():
     ser.close()
 
 def send_packet(data,res_size):
+    time.sleep(interframe_delay)
+    
     lendata=len(data)
     
     modulo=0
@@ -88,7 +91,7 @@ def send_packet(data,res_size):
     
     to_send=data+chr(modulo)
     ser.write(to_send)
-    time.sleep(0.01)
+    time.sleep(interframe_delay)
 
     ignore=len(to_send)
     read_val = ser.read(len(to_send)+res_size)
@@ -152,7 +155,29 @@ def get_bvolt():
     
     return b_voltage
     
+def get_speed():
+    response=send_packet(b"\x02\x21\x0D",5)
+    if len(response)<5:
+        speed=0
+    else:
+        speed=ord(response[3])
+        
+    return speed
     
+def get_temps():
+    response=send_packet(b"\x02\x21\x1A",20)
+    if len(response)<20:
+        t_coolant=0
+        t_air=0
+        t_ext=0
+        t_fuel=0
+    else:
+       t_coolant=float(ord(response[3])*256+ord(response[4]))/10-273.2
+       t_air=float(ord(response[7])*256+ord(response[8]))/10-273.2
+       t_ext=float(ord(response[11])*256+ord(response[12]))/10-273.2
+       t_fuel=float(ord(response[15])*256+ord(response[16]))/10-273.2
+        
+    return t_coolant, t_air, t_ext, t_fuel
     
     
 os.system("cls")
@@ -161,6 +186,7 @@ print ""
 print "\t\t Land Rover Td5 Storm - Dignostic tool"
 print ""
 print "Initing..."
+
 fast_init()
 
 ser = serial.Serial(serial_port, 10400, timeout=0.1)    #CP210x must be configured for 
@@ -185,17 +211,21 @@ debug=0
 
 #Start requesting data
 while (True):
-    time.sleep(0.01)
     b_voltage=get_bvolt()
-    
-    time.sleep(0.01) 
     rpm=get_rpm()
+    speed=get_speed()
+    t_coolant, t_air, t_ext, t_fuel =get_temps()
     
     os.system("cls")
     print "\t\t Td5 Storm"
     print " "
-    print "\t Voltaje de bateria: ", str(b_voltage)
+    print "\t Bateria Tentsioa: ", str(b_voltage), " Volt"
     print "\t RPM: ", str(rpm)
+    print "\t Abiadura: ", str(speed), " KMH"
+    print "\t Uraren tenperatura: ", str(t_coolant), " C"
+    print "\t Airearen tenperatura: ", str(t_air), " C"
+    print "\t Kanpoko tenperatura: ", str(t_ext), " C"
+    print "\t Gasoilaren tenperatura: ", str(t_fuel), " C"
 
 
 ser.close()
