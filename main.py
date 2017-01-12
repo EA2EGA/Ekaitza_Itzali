@@ -35,6 +35,12 @@
 #
 # Schematic:
 #
+# The circuit has poor noise inmunity, and it should be redesigned.
+# When the engine is started there are many chechsum errors, induced
+# by injector firing pulses.
+# Reducing resistances and adding capacitors for high frecuency noise inmunity.
+# Also using octocouplers would be a good idea.
+#
 #         Car Obd Port       |       CP2102 USB to TTL converter
 #                            |
 # K-line      12 Volt   GND  |  GND   5 Volt    RX        TX
@@ -72,6 +78,29 @@ debug = 5;
 interframe_delay=0.01
 serial_port = 'COM3'
 
+b_voltage=0
+rpm=0
+rpm_error=0
+speed=0
+t_coolant=0
+t_air=0
+t_ext=0
+t_fuel =0
+p1=0
+p2=0
+p3=0
+p4=0
+supply = 0
+aap=0
+maf =0
+ap1=0
+ap2=0
+pb1=0
+pb2=0
+pb3=0
+pb4=0
+pb5=0
+
 def fast_init():
     ser = serial.Serial(serial_port, 300, timeout=0.1) #CP210x is configured for 300 being 360
     command=b"\x00"
@@ -80,6 +109,7 @@ def fast_init():
     ser.close()
 
 def send_packet(data,res_size):
+    debug = 0
     time.sleep(interframe_delay)
     
     lendata=len(data)
@@ -103,6 +133,17 @@ def send_packet(data,res_size):
     if debug > 1: 
         print "Data Received: %s." % ":".join("{:02x}".format(ord(c)) for c in read_val_r)
     
+    modulo=0
+    for i in range(0,len(read_val_r)-1):
+        modulo = modulo + ord(read_val_r[i]) 
+    modulo = modulo % 256
+    
+    if (len(read_val_r)>2):
+        if (modulo!=ord(read_val_r[len(read_val_r)-1])): #Checksum error
+            read_val_r=""
+            if debug > 1:
+                print "Checksum ERROR"
+       
     return read_val_r
 
 def seed_key(read_val_r):
@@ -175,18 +216,22 @@ def seed_key(read_val_r):
     return key_answer
 
 def get_rpm():
+    global rpm
     response=send_packet(b"\x02\x21\x09",6)
     if len(response)<6:
-        rpm=0
+        #rpm=0
+        i=0
     else:
         rpm=ord(response[3])*256+ord(response[4])
     
     return rpm
     
 def get_rpm_error():
+    global rpm_error
     response=send_packet(b"\x02\x21\x21",6)
     if len(response)<6:
-        rpm_error=0
+        #rpm_error=0
+        i=0
     else:
         rpm_error=ord(response[3])*256+ord(response[4])
     
@@ -195,32 +240,39 @@ def get_rpm_error():
     return rpm_error
     
 def get_bvolt():
+    global b_voltage
     response=send_packet(b"\x02\x21\x10",8)
     if len(response)<8:
-        b_voltage=0
+        #b_voltage=0
+        i=0
     else:
         b_voltage=ord(response[3])*256+ord(response[4])
+        b_voltage=float(b_voltage)/1000
     
-    b_voltage=float(b_voltage)/1000
+    
     
     return b_voltage
     
 def get_speed():
+    global speed
     response=send_packet(b"\x02\x21\x0D",5)
     if len(response)<5:
-        speed=0
+        #speed=0
+        i=0
     else:
         speed=ord(response[3])
         
     return speed
     
 def get_temps():
+    global t_coolant, t_air, t_ext, t_fuel
     response=send_packet(b"\x02\x21\x1A",20)
     if len(response)<20:
-        t_coolant=0
-        t_air=0
-        t_ext=0
-        t_fuel=0
+        # t_coolant=0
+        # t_air=0
+        # t_ext=0
+        # t_fuel=0
+        i=0
     else:
        t_coolant=float(ord(response[3])*256+ord(response[4]))/10-273.2
        t_air=float(ord(response[7])*256+ord(response[8]))/10-273.2
@@ -230,13 +282,15 @@ def get_temps():
     return t_coolant, t_air, t_ext, t_fuel
     
 def get_throttle():
+    global p1, p2, p3, p4, supply
     response=send_packet(b"\x02\x21\x1B",14)
     if len(response)<14:
-        p1=0
-        p2=0
-        p3=0
-        p4=0
-        supply=0
+        # p1=0
+        # p2=0
+        # p3=0
+        # p4=0
+        # supply=0
+        i=0
     else:
         p1=float(ord(response[3])*256+ord(response[4]))/1000
         p2=float(ord(response[5])*256+ord(response[6]))/1000
@@ -248,11 +302,13 @@ def get_throttle():
     return p1, p2, p3, p4, supply
     
 def get_aap_maf():
+    global aap, maf
     debug=5
     response=send_packet(b"\x02\x21\x1C",12)
     if len(response)<12:
-        aap=0
-        maf=0   #?? Is ok?
+        #aap=0
+        #maf=0   #?? Is ok?
+        i=0
     else:
         aap=float(ord(response[3])*256+ord(response[4]))/10000
         maf=ord(response[7])*256+ord(response[8])
@@ -260,11 +316,13 @@ def get_aap_maf():
     return aap, maf
     
 def get_pressures():
+    global ap1, ap2
     debug=5
     response=send_packet(b"\x02\x21\x23",8)
     if len(response)<8:
-        ap1=0
-        ap2=0   #?? Is ok?
+        #ap1=0
+        #ap2=0   #?? Is ok?
+        i=0
     else:
         ap1=float(ord(response[3])*256+ord(response[4]))/10000
         ap2=float(ord(response[5])*256+ord(response[6]))/10000
@@ -272,13 +330,15 @@ def get_pressures():
     return ap1, ap2
     
 def get_power_balance():
+    global pb1, pb2, pb3, pb4, pb5
     response=send_packet(b"\x02\x21\x40",14)
     if len(response)<14:
-        pb1=0
-        pb2=0
-        pb3=0
-        pb4=0
-        pb5=0
+        # pb1=0
+        # pb2=0
+        # pb3=0
+        # pb4=0
+        # pb5=0
+        i=0
     else:
         pb1=ord(response[3])*256+ord(response[4])
         pb2=ord(response[5])*256+ord(response[6])
@@ -325,21 +385,13 @@ if (len(response)==6):
 time.sleep(0.1)
 response=send_packet(b"\x02\x21\x02",15)             #Start Diagnostics
 
-time.sleep(0.5)
+time.sleep(2)
 
 debug=0
 
 #Start requesting data
 while (True):
-    b_voltage=get_bvolt()
-    rpm=get_rpm()
-    rpm_error=get_rpm_error()
-    speed=get_speed()
-    t_coolant, t_air, t_ext, t_fuel =get_temps()
-    p1, p2, p3, p4, supply = get_throttle()
-    aap, maf = get_aap_maf()
-    ap1, ap2 = get_pressures()
-    pb1,pb2,pb3,pb4,pb5=get_power_balance()
+
     
     os.system("cls")
     print "\t\t Td5 Storm"
@@ -353,12 +405,26 @@ while (True):
     print "\t Kanpoko tenperatura: ", str(t_ext), " C"
     print "\t Gasoilaren tenperatura: ", str(t_fuel), " C"
     print "\t Azeleragailuen pistak (Volt): ", str(p1), " ", str(p2), " ", str(p3), " ", str(p4), " ", str(supply)
-    print "\t AAP - MAF (Units?): ", str(aap), " ", str(maf)
-    print "\t Ambient Press - Ambient Corrected (Units?): ", str(ap1), " ", str(ap2)
-    print "\t Zilindroak (Units?): ", str(pb1), " ", str(pb2), " ", str(pb3), " ", str(pb4), " ", str(pb5)
+    print "\t Kolektoreko presioa: ", str(aap), " Bar"
+    print "\t Aire Masa neurgailua: ", str(maf)
+    print "\t Kanpoko presioa:", str(ap1), " Bar"
+    print "\t Turboaren presioa (kalkulatua):", str(aap-ap1), " Bar"
+    print "\t Zilindroak: ", str(pb1), " ", str(pb2), " ", str(pb3), " ", str(pb4), " ", str(pb5)
     print "\t EGR Modulation: N/A"
     print "\t EGR Inlet: N/A"
     print "\t Wastegate MOdulation: N/A"
+    
+    b_voltage=get_bvolt()
+    rpm=get_rpm()
+    rpm_error=get_rpm_error()
+    speed=get_speed()
+    t_coolant, t_air, t_ext, t_fuel =get_temps()
+    p1, p2, p3, p4, supply = get_throttle()
+    aap, maf = get_aap_maf()
+    ap1, ap2 = get_pressures()
+    pb1,pb2,pb3,pb4,pb5=get_power_balance()
+    
+    #time.sleep(1)
 
 
 ser.close()
