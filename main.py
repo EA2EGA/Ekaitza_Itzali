@@ -69,7 +69,7 @@ import os
 import logging, sys
 
 debug = 5;
-interframe_delay=0.04
+interframe_delay=0.01
 serial_port = 'COM3'
 
 def fast_init():
@@ -250,14 +250,26 @@ def get_throttle():
 def get_aap_maf():
     debug=5
     response=send_packet(b"\x02\x21\x1C",12)
-    if len(response)<14:
+    if len(response)<12:
         aap=0
         maf=0   #?? Is ok?
     else:
-        aap=ord(response[3])*256+ord(response[4])
+        aap=float(ord(response[3])*256+ord(response[4]))/10000
         maf=ord(response[7])*256+ord(response[8])
        
     return aap, maf
+    
+def get_pressures():
+    debug=5
+    response=send_packet(b"\x02\x21\x23",8)
+    if len(response)<8:
+        ap1=0
+        ap2=0   #?? Is ok?
+    else:
+        ap1=float(ord(response[3])*256+ord(response[4]))/10000
+        ap2=float(ord(response[5])*256+ord(response[6]))/10000
+       
+    return ap1, ap2
     
 def get_power_balance():
     response=send_packet(b"\x02\x21\x40",14)
@@ -326,6 +338,7 @@ while (True):
     t_coolant, t_air, t_ext, t_fuel =get_temps()
     p1, p2, p3, p4, supply = get_throttle()
     aap, maf = get_aap_maf()
+    ap1, ap2 = get_pressures()
     pb1,pb2,pb3,pb4,pb5=get_power_balance()
     
     os.system("cls")
@@ -341,7 +354,11 @@ while (True):
     print "\t Gasoilaren tenperatura: ", str(t_fuel), " C"
     print "\t Azeleragailuen pistak (Volt): ", str(p1), " ", str(p2), " ", str(p3), " ", str(p4), " ", str(supply)
     print "\t AAP - MAF (Units?): ", str(aap), " ", str(maf)
+    print "\t Ambient Press - Ambient Corrected (Units?): ", str(ap1), " ", str(ap2)
     print "\t Zilindroak (Units?): ", str(pb1), " ", str(pb2), " ", str(pb3), " ", str(pb4), " ", str(pb5)
+    print "\t EGR Modulation: N/A"
+    print "\t EGR Inlet: N/A"
+    print "\t Wastegate MOdulation: N/A"
 
 
 ser.close()
