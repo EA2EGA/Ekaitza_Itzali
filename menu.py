@@ -34,7 +34,7 @@ import os
 import logging, sys
 
 os.system("cls")
-print "\t Land Rover Td5 Motorraren Azterketa Programa"
+print "\t Land Rover Td5 Motorren Azterketa Programa"
 print "\t\t\t Ongi Etorri"
 print ""
 print "\tBSD 2-Clause License"
@@ -52,12 +52,17 @@ ports = list(serial.tools.list_ports.comports())
 for p in ports:
     print(p)
 
-inprimatu="\nAukeratu Serie Portua ("+str(ports[0]).split(' ')[0]+"): "
+if len(ports)>0:
+    inprimatu="\nAukeratu Serie Portua ("+str(ports[0]).split(' ')[0]+"): "
+else:
+    print "\nEz da serie porturik topatu sisteman :("
+    print "Programa amaitzen"
+    exit()
     
 trash=raw_input(inprimatu)
 
 while (True):
-
+    time.sleep(0.1)
     os.system("cls")
     
 

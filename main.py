@@ -35,23 +35,24 @@
 #
 # Schematic:
 #
-# The circuit has poor noise inmunity, and it should be redesigned.
-# When the engine is started there are many chechsum errors, induced
-# by injector firing pulses.
-# Reducing resistances and adding capacitors for high frecuency noise inmunity.
-# Also using octocouplers would be a good idea.
+# The first version of the circuit had poor noise inmunity
+# This version have changed some resistance values and added a 
+# high frecuency noise filtering capacitor.
+# No the number of chesum errors is negligible.
 #
 #         Car Obd Port       |       CP2102 USB to TTL converter
 #                            |
 # K-line      12 Volt   GND  |  GND   5 Volt    RX        TX
 #  |           |         |       |     |         |        |
-#  |           |         |-------|     |         |        |
-#  |           |                       |         |        |
-#  |--2K2------|       Reduce signal   |         |        |
-#  |                         to 0-5V   |         |        |
-#  |--22K--------1N4184->--------------|         |        |
+#  |           |     |---|-------|     |         |        |
+#  |           |     |                 |         |        |
+#  |--510------|     | Reduce signal   |         |        |
+#  |                 |       to 0-5V   |         |        |
+#  |        |--100pF-|             |         |        |
+#  |        |                          |         |        |
+#  |--2K2--------1N4184->--------------|         |        |
 #  |        |                                    |        |
-#  |        |----------2K2-----------------------|        |
+#  |        |------------------------------------|        |
 #  |                                                      |
 #  |                                                      |
 #  |     2N2222A              (Invert again and Power)    |
@@ -75,7 +76,7 @@ import os
 import logging, sys
 
 debug = 5;
-interframe_delay=0.01
+interframe_delay=0.02
 serial_port = 'COM3'
 
 b_voltage=0
@@ -109,7 +110,7 @@ def fast_init():
     ser.close()
 
 def send_packet(data,res_size):
-    debug = 0
+    debug = 2
     time.sleep(interframe_delay)
     
     lendata=len(data)
@@ -127,10 +128,10 @@ def send_packet(data,res_size):
     read_val = ser.read(len(to_send)+res_size)
 
     read_val_s = read_val[0:ignore]
-    if debug > 1:    
+    if debug > 2:    
         print "Data Sent: %s." % ":".join("{:02x}".format(ord(c)) for c in read_val_s)
     read_val_r = read_val[ignore:]
-    if debug > 1: 
+    if debug > 2: 
         print "Data Received: %s." % ":".join("{:02x}".format(ord(c)) for c in read_val_r)
     
     modulo=0
