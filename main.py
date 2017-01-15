@@ -2,6 +2,9 @@
 
 # Copyright (c) 2017, xabiergarmendia@gmail.com
 # All rights reserved.
+#
+# Code used:
+# https://github.com/pajacobson/td5keygen by paul@discotd5.com
 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -415,6 +418,12 @@ while (True):
     print "\t EGR Inlet: N/A"
     print "\t Wastegate MOdulation: N/A"
     
+    response=send_packet(b"\x02\x21\x1e",6)
+    print "|n\n\tHex is: %s." % ":".join("{:02x}".format(ord(c)) for c in response)
+    
+    response=send_packet(b"\x02\x21\x36",6)
+    print "\tHex is: %s." % ":".join("{:02x}".format(ord(c)) for c in response)
+    
     b_voltage=get_bvolt()
     rpm=get_rpm()
     rpm_error=get_rpm_error()
@@ -425,7 +434,7 @@ while (True):
     ap1, ap2 = get_pressures()
     pb1,pb2,pb3,pb4,pb5=get_power_balance()
     
-    #time.sleep(1)
+    time.sleep(0.5)
 
 
 ser.close()

@@ -2,7 +2,10 @@
 
 # Copyright (c) 2017, xabiergarmendia@gmail.com
 # All rights reserved.
-
+#
+# Code used:
+# https://github.com/pajacobson/td5keygen by paul@discotd5.com
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 
