@@ -79,7 +79,7 @@ import os
 import logging, sys
 import msvcrt
 
-debug = 5;
+debug = 0;
 interframe_delay=0.002
 serial_port = 'COM3'
 
@@ -124,7 +124,7 @@ def fast_init():
     ser.close()
 
 def send_packet(data,res_size):
-    debug = 2
+    global debug
     time.sleep(interframe_delay)
     
     lendata=len(data)
@@ -406,7 +406,7 @@ def initialize():
         response=send_packet(key_ans,4)             #Seed Request
 
     
-    time.sleep(1)
+    time.sleep(0.2)
 
 menu_code=0;
 
@@ -450,8 +450,10 @@ while (True):
             #exit()
         
         # initiazile()
+        time.sleep(1)
         
         menu_code=1
+        continue
         
     if (menu_code==1):
         print "| Fuelling Parameters                                                         |"
@@ -481,7 +483,8 @@ while (True):
         # print "\tHex is: %s." % ":".join("{:02x}".format(ord(c)) for c in response)
         
         if (current_mode!=1):
-            print ("Logging in")
+            if debug > 2:  
+                print ("Logging in")
             initialize()
             time.sleep(0.1)
             response=send_packet(b"\x02\x21\x20",15)             #Start Diagnostics
@@ -507,9 +510,11 @@ while (True):
                     response=send_packet(b"\x01\x82",3)
                     ser.close() 
                 current_mode=0
-                              
-                print ("Logging out")
-                time.sleep(1)
+                if debug > 2:              
+                    print ("Logging out")
+                time.sleep(0.2)
+                os.system("cls")
+                continue
     
     if (menu_code==2):
         print "| Inputs                                                                      |"
@@ -543,8 +548,11 @@ while (True):
                     response=send_packet(b"\x01\x82",3)
                     ser.close()  
                 current_mode=0
-                print ("Logging out")
-                time.sleep(1)
+                if debug > 2:
+                    print ("Logging out")
+                time.sleep(0.2)
+                os.system("cls")
+                continue
         
     if (menu_code==3):
         print "| Outputs                                                                     |"
