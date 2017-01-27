@@ -106,6 +106,16 @@ pb3=0
 pb4=0
 pb5=0
 
+br1=0
+br2=0
+clutch=0
+xfer=0
+ccm=0
+ccr=0
+ccsa=0
+accr=0
+acfr=0
+
 def fast_init():
     ser = serial.Serial(serial_port, 300, timeout=0.1) #CP210x is configured for 300 being 360
     command=b"\x00"
@@ -334,6 +344,50 @@ def get_power_balance():
         
     return pb1,pb2,pb3,pb4,pb5
     
+    
+def get_inputs():
+    global br1,br2,clutch,xfer,ccm,ccr,ccsa,accr,acfr
+    response=send_packet(b"\x02\x21\x1e",6)
+    byte1=ord(response[3])
+    byte2=ord(response[4])
+    if byte2 & 0b01000000 != 0:
+        xfer=1
+    else:
+        xfer=0
+    if byte1 & 0b1 != 0:
+        br2=1
+    else:
+        br2=0
+    if byte2 & 0b10000000 != 0:
+        br1=1
+    else:
+        br1=0
+    if byte1 & 0b00000010 != 0:
+        clutch=1
+    else:
+        clutch=0
+    if byte1 & 0b00000100 != 0:
+        ccm=1
+    else:
+        ccm=0
+    if byte1 & 0b00010000 != 0:
+        ccr=1
+    else:
+        ccr=0
+    if byte1 & 0b00001000 != 0:
+        ccsa=1
+    else:
+        ccsa=0
+    if byte2 & 0b00001000 != 0:
+        accr=1
+    else:
+        accr=0
+    if byte2 & 0b00000100 != 0:
+        acfr=1 
+    else:
+        acfr=0
+    return br1,br2,clutch,xfer,ccm,ccr,ccsa,accr,acfr
+    
 def initialize():
     global ser
     fast_init()
@@ -461,20 +515,25 @@ while (True):
         print "| Inputs                                                                      |"
         print "|-----------------------------------------------------------------------------|"
         
-        print "\t Brake 1, Brake 2: "
-        print "\t Clutch: "
-        print "\t Transfer: "
+        print "\t Brake 1, Brake 2: ", str(br1), " ", str(br2)
+        print "\t Clutch: ", str(clutch)
+        print "\t Transfer: ", str(xfer)
         print "\t Gear Box: N/A Yet"
-        print "\t Cruise Control, Resume, Set/Accelerate: "
-        print "\t A/C Clutch Req: "
-        print "\t A/C Fan Req:  "
+        print "\t Cruise Control Main, Resume, Set/Accelerate: ", str(ccm), " ", str(ccr), " ", str(ccsa)
+        print "\t A/C Clutch Req: ", str(accr)
+        print "\t A/C Fan Req:  ", str(acfr)
+        
         
         if (current_mode!=2):
             initialize()
             time.sleep(0.1)
             response=send_packet(b"\x02\x3e\x01",3)             #Start Inputs
             current_mode=2
-            
+         
+        br1,br2,clutch,xfer,ccm,ccr,ccsa,accr,acfr=get_inputs()
+        time.sleep(0.1) 
+
+        
         if msvcrt.kbhit():
             menu_code = int(msvcrt.getch())
             time.sleep(0.1)
