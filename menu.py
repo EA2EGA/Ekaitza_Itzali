@@ -36,38 +36,61 @@ from math import *
 import os
 import logging, sys
 
+import sys, time, msvcrt
+
 os.system("cls")
-print "\t Land Rover Td5 Motorren Azterketa Programa"
-print "\t\t\t Ongi Etorri"
-print ""
-print "\tBSD 2-Clause License"
-print "\t Egilea: EA2EGA - Garmen - xabiergarmendia@gmail.com"
-print "\t Erabilitako kodea:"
-print "\t\thttps://github.com/pajacobson/td5keygen"
-print "\t\t\tpaul@discotd5.com"
-print "\t\thttp://stackoverflow.com/questions/12090503"
-print "\t\t\thttp://stackoverflow.com/users/300783/thomas"
-print "\n"
-print "Serie Portu erabilgarriak:"
 
-import serial.tools.list_ports
-ports = list(serial.tools.list_ports.comports())
-for p in ports:
-    print(p)
-
-if len(ports)>0:
-    inprimatu="\nAukeratu Serie Portua ("+str(ports[0]).split(' ')[0]+"): "
-else:
-    print "\nEz da serie porturik topatu sisteman :("
-    print "Programa amaitzen"
-    exit()
+    # exit()
     
-trash=raw_input(inprimatu)
+# trash=raw_input(inprimatu)
+
+menu_code=0;
 
 while (True):
     time.sleep(0.1)
     os.system("cls")
+    print "-------------------------------------------------------------------------------"
+    print "|                Land Rover Td5 Motorren Azterketa Programa                   |"
+    print "| Port: COM3 - Auth: Done - Connection: OK - Status: NOT Immobilized          |"
+    print "-------------------------------------------------------------------------------"
+    print "| 1. Fuelling - 2. Inputs - 3. Outputs - 4. Settings - 5. Faults - 6. Map     |"
+    print "-------------------------------------------------------------------------------"
+    if (menu_code==0):
+        print "\n Land Rover Td5 Motorren Azterketa Programa"
+        print "\t\t Ongi Etorri"
+        print ""
+        print " BSD 2-Clause License"
+        print " Egilea: EA2EGA - Garmen - xabiergarmendia@gmail.com"
+        print " Erabilitako kodea:"
+        print "\thttps://github.com/pajacobson/td5keygen"
+        print "\t\tpaul@discotd5.com"
+        print "\thttp://stackoverflow.com/questions/12090503"
+        print "\t\thttp://stackoverflow.com/users/300783/thomas"
+        print "\n"
+        print " Serie Portu erabilgarriak:"
+
+        import serial.tools.list_ports
+        ports = list(serial.tools.list_ports.comports())
+        for p in ports:
+            print(p)
+
+        if len(ports)>0:
+             print ("\n "+str(ports[0]).split(' ')[0]+" Portua Erabiltzen ")
+            # nb = input("\n Aukeratu Serie Portua ("+str(ports[0]).split(' ')[0]+"): ")
+        else:
+            print "\n Ez da serie porturik topatu sisteman :("
+            print " Programa amaitzen"
+    if (menu_code==1):
+        print "| Fuelling Parameters                                                         |"
+        print "|-----------------------------------------------------------------------------|"
+    if (menu_code==2):
+        print "| Inputs                                                         |"
+        print "|-----------------------------------------------------------------------------|"
     
+    
+    if msvcrt.kbhit():
+        menu_code = int(msvcrt.getch())
+        time.sleep(0.5)
 
 
 

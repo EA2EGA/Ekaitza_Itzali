@@ -79,7 +79,7 @@ import os
 import logging, sys
 
 debug = 5;
-interframe_delay=0.01
+interframe_delay=0.02
 serial_port = 'COM3'
 
 b_voltage=0
@@ -387,7 +387,7 @@ if (len(response)==6):
     response=send_packet(key_ans,4)             #Seed Request
 
 time.sleep(0.1)
-response=send_packet(b"\x02\x21\x02",15)             #Start Diagnostics
+response=send_packet(b"\x02\x3e\x01",15)             #Start Diagnostics
 
 time.sleep(2)
 
@@ -398,43 +398,16 @@ while (True):
 
     
     os.system("cls")
-    print "\t\t Td5 Storm"
-    print " "
-    print "\t Bateria Tentsioa: ", str(b_voltage), " Volt"
-    print "\t RPM: ", str(rpm)
-    print "\t RPM Error: ", str(rpm_error)
-    print "\t Abiadura: ", str(speed), " KMH"
-    print "\t Uraren tenperatura: ", str(t_coolant), " C"
-    print "\t Airearen tenperatura: ", str(t_air), " C"
-    print "\t Kanpoko tenperatura: ", str(t_ext), " C"
-    print "\t Gasoilaren tenperatura: ", str(t_fuel), " C"
-    print "\t Azeleragailuen pistak (Volt): ", str(p1), " ", str(p2), " ", str(p3), " ", str(p4), " ", str(supply)
-    print "\t Kolektoreko presioa: ", str(aap), " Bar"
-    print "\t Aire Masa neurgailua: ", str(maf)
-    print "\t Kanpoko presioa:", str(ap1), " Bar"
-    print "\t Turboaren presioa (kalkulatua):", str(aap-ap1), " Bar"
-    print "\t Zilindroak: ", str(pb1), " ", str(pb2), " ", str(pb3), " ", str(pb4), " ", str(pb5)
-    print "\t EGR Modulation: N/A"
-    print "\t EGR Inlet: N/A"
-    print "\t Wastegate MOdulation: N/A"
     
-        # response=send_packet(b"\x02\x21\x1e",6)
-        # print "\n\n\tHex is: %s." % ":".join("{:02x}".format(ord(c)) for c in response)
-        
-        # response=send_packet(b"\x02\x21\x36",6)
-        # print "\tHex is: %s." % ":".join("{:02x}".format(ord(c)) for c in response)
-        
-    b_voltage=get_bvolt()
-    rpm=get_rpm()
-    rpm_error=get_rpm_error()
-    speed=get_speed()
-    t_coolant, t_air, t_ext, t_fuel =get_temps()
-    p1, p2, p3, p4, supply = get_throttle()
-    aap, maf = get_aap_maf()
-    ap1, ap2 = get_pressures()
-    pb1,pb2,pb3,pb4,pb5=get_power_balance()
+    response=send_packet(b"\x02\x21\x1e",6)
+    print "\tHex is: %s." % ":".join("{:02x}".format(ord(c)) for c in response)
     
-    # time.sleep(0.5)
+    response=send_packet(b"\x02\x21\x36",6)
+    print "\tHex is: %s." % ":".join("{:02x}".format(ord(c)) for c in response)
+        
+     
+    
+    time.sleep(1)
 
 
 ser.close()

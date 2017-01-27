@@ -77,9 +77,10 @@ import serial
 from math import *
 import os
 import logging, sys
+import msvcrt
 
 debug = 5;
-interframe_delay=0.01
+interframe_delay=0.002
 serial_port = 'COM3'
 
 b_voltage=0
@@ -151,36 +152,6 @@ def send_packet(data,res_size):
     return read_val_r
 
 def seed_key(read_val_r):
-    # seed = read_val_r[3:5]
-    # if debug > 1:
-        # print "\tSeed is: %s." % ":".join("{:02x}".format(ord(c)) for c in seed)
-    # seed_int=ord(seed[0])*256+ord(seed[1])
-    # if debug > 1:
-        # print "\tSeed integer: %s." % seed_int
-
-    # counter=0
-
-    # key=[]
-
-    # with open("key.txt") as f:
-        # for line in f:
-            # if (counter==seed_int):
-                # content = int(line,16)
-                # if debug > 1:
-                    # print "\tKey integer: %s." % content
-                # hex_1=int(line[0:2],16)
-                # hex_2=int(line[2:4],16)
-                # key=chr(hex_1)+chr(hex_2)
-                # if debug > 1:
-                    # print "\tKey hex: %s." % ":".join("{:02x}".format(ord(c)) for c in key)
-            
-            
-            # counter=counter+1
-    
-
-    # key_answer=b"\x04\x27\x02"+key
-    # return key_answer
-    
     seed = read_val_r[3:5]
     if debug > 1:
         print "\tSeed is: %s." % ":".join("{:02x}".format(ord(c)) for c in seed)
@@ -363,79 +334,189 @@ def get_power_balance():
         
     return pb1,pb2,pb3,pb4,pb5
     
+def initialize():
+    global ser
+    fast_init()
+
+    ser = serial.Serial(serial_port, 10400, timeout=0.1)    #CP210x must be configured for 
+
+    time.sleep(0.1)
+    response=send_packet(b"\x81\x13\xF7\x81",5)             #Init Frame
+    time.sleep(0.1)
+    response=send_packet(b"\x02\x10\xA0",3)             #Start Diagnostics
+    time.sleep(0.1)
+    response=send_packet(b"\x02\x27\x01",6)             #Seed Request
+
+    if (len(response)==6):
+        key_ans=seed_key(response)
+        response=send_packet(key_ans,4)             #Seed Request
+
     
-os.system("cls")
-print ""
-print ""
-print "\t\t Land Rover Td5 Storm - Dignostic tool"
-print ""
-print "Initing..."
+    time.sleep(1)
 
-fast_init()
+menu_code=0;
 
-ser = serial.Serial(serial_port, 10400, timeout=0.1)    #CP210x must be configured for 
+current_mode=0;
 
-time.sleep(0.1)
-response=send_packet(b"\x81\x13\xF7\x81",5)             #Init Frame
-time.sleep(0.1)
-response=send_packet(b"\x02\x10\xA0",3)             #Start Diagnostics
-time.sleep(0.1)
-response=send_packet(b"\x02\x27\x01",6)             #Seed Request
+ser=0
 
-if (len(response)==6):
-    key_ans=seed_key(response)
-    response=send_packet(key_ans,4)             #Seed Request
-
-time.sleep(0.1)
-response=send_packet(b"\x02\x21\x02",15)             #Start Diagnostics
-
-time.sleep(2)
-
-debug=0
-
-#Start requesting data
 while (True):
-
-    
+    time.sleep(0.1)
     os.system("cls")
-    print "\t\t Td5 Storm"
-    print " "
-    print "\t Bateria Tentsioa: ", str(b_voltage), " Volt"
-    print "\t RPM: ", str(rpm)
-    print "\t RPM Error: ", str(rpm_error)
-    print "\t Abiadura: ", str(speed), " KMH"
-    print "\t Uraren tenperatura: ", str(t_coolant), " C"
-    print "\t Airearen tenperatura: ", str(t_air), " C"
-    print "\t Kanpoko tenperatura: ", str(t_ext), " C"
-    print "\t Gasoilaren tenperatura: ", str(t_fuel), " C"
-    print "\t Azeleragailuen pistak (Volt): ", str(p1), " ", str(p2), " ", str(p3), " ", str(p4), " ", str(supply)
-    print "\t Kolektoreko presioa: ", str(aap), " Bar"
-    print "\t Aire Masa neurgailua: ", str(maf)
-    print "\t Kanpoko presioa:", str(ap1), " Bar"
-    print "\t Turboaren presioa (kalkulatua):", str(aap-ap1), " Bar"
-    print "\t Zilindroak: ", str(pb1), " ", str(pb2), " ", str(pb3), " ", str(pb4), " ", str(pb5)
-    print "\t EGR Modulation: N/A"
-    print "\t EGR Inlet: N/A"
-    print "\t Wastegate MOdulation: N/A"
-    
+    print "-------------------------------------------------------------------------------"
+    print "|                Land Rover Td5 Motorren Azterketa Programa                   |"
+    print "| Port: COM3 - Auth: Done - Connection: OK - Status: NOT Immobilized          |"
+    print "-------------------------------------------------------------------------------"
+    print "| 1. Fuelling - 2. Inputs - 3. Outputs - 4. Settings - 5. Faults - 6. Map     |"
+    print "-------------------------------------------------------------------------------"
+    if (menu_code==0):
+        print "\n Land Rover Td5 Motorren Azterketa Programa"
+        print "\t\t Ongi Etorri"
+        print ""
+        print " BSD 2-Clause License"
+        print " Egilea: EA2EGA - Garmen - xabiergarmendia@gmail.com"
+        print " Erabilitako kodea:"
+        print "\thttps://github.com/pajacobson/td5keygen"
+        print "\t\tpaul@discotd5.com"
+        print "\thttp://stackoverflow.com/questions/12090503"
+        print "\t\thttp://stackoverflow.com/users/300783/thomas"
+        print "\n"
+        print " Serie Portu erabilgarriak:"
+
+        import serial.tools.list_ports
+        ports = list(serial.tools.list_ports.comports())
+        for p in ports:
+            print(p)
+
+        if len(ports)>0:
+            inprimatu="\n Aukeratu Serie Portua ("+str(ports[0]).split(' ')[0]+"): "
+        else:
+            print "\n Ez da serie porturik topatu sisteman :("
+            print " Programa amaitzen"
+            #exit()
+        
+        # initiazile()
+        
+        menu_code=1
+        
+    if (menu_code==1):
+        print "| Fuelling Parameters                                                         |"
+        print "|-----------------------------------------------------------------------------|"
+        print "\t Bateria Tentsioa: ", str(b_voltage), " Volt"
+        print "\t RPM: ", str(rpm)
+        print "\t RPM Error: ", str(rpm_error)
+        print "\t Abiadura: ", str(speed), " KMH"
+        print "\t Uraren tenperatura: ", str(t_coolant), " C"
+        print "\t Airearen tenperatura: ", str(t_air), " C"
+        print "\t Kanpoko tenperatura: ", str(t_ext), " C"
+        print "\t Gasoilaren tenperatura: ", str(t_fuel), " C"
+        print "\t Azeleragailuen pistak (Volt): ", str(p1), " ", str(p2), " ", str(p3), " ", str(p4), " ", str(supply)
+        print "\t Kolektoreko presioa: ", str(aap), " Bar"
+        print "\t Aire Masa neurgailua: ", str(maf)
+        print "\t Kanpoko presioa:", str(ap1), " Bar"
+        print "\t Turboaren presioa (kalkulatua):", str(aap-ap1), " Bar"
+        print "\t Zilindroak: ", str(pb1), " ", str(pb2), " ", str(pb3), " ", str(pb4), " ", str(pb5)
+        print "\t EGR Modulation: N/A"
+        print "\t EGR Inlet: N/A"
+        print "\t Wastegate Modulation: N/A"
+        
         # response=send_packet(b"\x02\x21\x1e",6)
         # print "\n\n\tHex is: %s." % ":".join("{:02x}".format(ord(c)) for c in response)
         
         # response=send_packet(b"\x02\x21\x36",6)
         # print "\tHex is: %s." % ":".join("{:02x}".format(ord(c)) for c in response)
         
-    b_voltage=get_bvolt()
-    rpm=get_rpm()
-    rpm_error=get_rpm_error()
-    speed=get_speed()
-    t_coolant, t_air, t_ext, t_fuel =get_temps()
-    p1, p2, p3, p4, supply = get_throttle()
-    aap, maf = get_aap_maf()
-    ap1, ap2 = get_pressures()
-    pb1,pb2,pb3,pb4,pb5=get_power_balance()
+        if (current_mode!=1):
+            print ("Logging in")
+            initialize()
+            time.sleep(0.1)
+            response=send_packet(b"\x02\x21\x20",15)             #Start Diagnostics
+            current_mode=1
+            
+        
+        b_voltage=get_bvolt()
+        rpm=get_rpm()
+        rpm_error=get_rpm_error()
+        speed=get_speed()
+        t_coolant, t_air, t_ext, t_fuel =get_temps()
+        p1, p2, p3, p4, supply = get_throttle()
+        aap, maf = get_aap_maf()
+        ap1, ap2 = get_pressures()
+        pb1,pb2,pb3,pb4,pb5=get_power_balance()
+        
+        if msvcrt.kbhit():
+            menu_code = int(msvcrt.getch())
+            time.sleep(0.1)
+            if (menu_code != current_mode):                     #Logout
+                if(ser.isOpen()):
+                    response=send_packet(b"\x01\x20",3)             
+                    response=send_packet(b"\x01\x82",3)
+                    ser.close() 
+                current_mode=0
+                              
+                print ("Logging out")
+                time.sleep(1)
     
-    # time.sleep(0.5)
-
-
-ser.close()
-
+    if (menu_code==2):
+        print "| Inputs                                                                      |"
+        print "|-----------------------------------------------------------------------------|"
+        
+        print "\t Brake 1, Brake 2: "
+        print "\t Clutch: "
+        print "\t Transfer: "
+        print "\t Gear Box: N/A Yet"
+        print "\t Cruise Control, Resume, Set/Accelerate: "
+        print "\t A/C Clutch Req: "
+        print "\t A/C Fan Req:  "
+        
+        if (current_mode!=2):
+            initialize()
+            time.sleep(0.1)
+            response=send_packet(b"\x02\x3e\x01",3)             #Start Inputs
+            current_mode=2
+            
+        if msvcrt.kbhit():
+            menu_code = int(msvcrt.getch())
+            time.sleep(0.1)
+            if (menu_code != current_mode):                     #Logout
+                if(ser.isOpen()):
+                    response=send_packet(b"\x01\x20",3)             
+                    response=send_packet(b"\x01\x82",3)
+                    ser.close()  
+                current_mode=0
+                print ("Logging out")
+                time.sleep(1)
+        
+    if (menu_code==3):
+        print "| Outputs                                                                     |"
+        print "|-----------------------------------------------------------------------------|"
+        print "\t Test AC Clutch: "
+        print "\t Test AC Fan: "
+        print "\t Test MIL Lamp: "
+        print "\t Test Fuel Pump: "
+        print "\t Test Glow Plugs: "
+        print "\t Test Pulse Rev Counter: "
+        print "\t Test Turbo WG Modulator: "
+        print "\t Test Temperature Gauge: "
+        print "\t Test EGR Inlet Modulator: "
+        print "\t Test Injector 1: "
+        print "\t Test Injector 2: "
+        print "\t Test Injector 3: "
+        print "\t Test Injector 4: "
+        print "\t Test Injector 5: "
+    
+    if (menu_code==4):
+        print "| Settings                                                                    |"
+        print "|-----------------------------------------------------------------------------|"
+    
+    if (menu_code==5):
+        print "| Faults                                                                      |"
+        print "|-----------------------------------------------------------------------------|"
+    
+    if (menu_code==6):
+        print "| Maps                                                                        |"
+        print "|-----------------------------------------------------------------------------|"
+    
+    if msvcrt.kbhit():
+        menu_code = int(msvcrt.getch())
+        time.sleep(0.1)
