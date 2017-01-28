@@ -26,7 +26,7 @@ Luca72 did a diagnostic system based on a Arduino Mega2650. Which had been very 
 * Read Fuelling: 90% Done (EGR and Wastegate to be tested)
 * Read Switches: 95% Done (Auto Gearbox data is missing)
 * Read/Write Settings: Not yet
-* Read/Clear Faults: Not yet
+* Read/Clear Faults: 100% Done
 * Test Outputs: Not yet
 * Security Status: Not yet
 * Learn Alarm Code: Not yet

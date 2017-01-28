@@ -87,9 +87,9 @@ line_br=0
 while (True):
     read_val = ser.read(1);
     if (read_val):
-        # sys.stdout.write("{:02x}".format(ord(read_val)))
-        sys.stdout.write(" ")
-        sys.stdout.write("{:08b}".format(ord(read_val)))
+        sys.stdout.write("{:02x}".format(ord(read_val)))
+        #sys.stdout.write(" ")
+        #sys.stdout.write("{:08b}".format(ord(read_val)))
         sys.stdout.flush()
         line_br=0
     else:

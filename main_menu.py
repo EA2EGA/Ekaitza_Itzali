@@ -78,6 +78,7 @@ from math import *
 import os
 import logging, sys
 import msvcrt
+from pyftdi.ftdi import Ftdi
 
 fault_code_void="Unknown"
 fault_code_01_01="1-1 egr inlet throttle diagnostics (L)"
@@ -693,7 +694,7 @@ while (True):
     os.system("cls")
     print "-------------------------------------------------------------------------------"
     print "|                Land Rover Td5 Motorren Azterketa Programa                   |"
-    print "| Port: COM3 - Auth: Done - Connection: OK - Status: NOT Immobilized          |"
+    print "| Port: "+serial_port+" - Auth: Done - Connection: OK - Status: NOT Immobilized         |"
     print "-------------------------------------------------------------------------------"
     print "| 1. Fuelling - 2. Inputs - 3. Outputs - 4. Settings - 5. Faults - 6. Map     |"
     print "-------------------------------------------------------------------------------"
@@ -714,10 +715,13 @@ while (True):
         import serial.tools.list_ports
         ports = list(serial.tools.list_ports.comports())
         for p in ports:
-            print(p)
-
-        if len(ports)>0:
-            inprimatu="\n Aukeratu Serie Portua ("+str(ports[0]).split(' ')[0]+"): "
+            print("  "+str(p))
+        if len(ports)==1:
+            print("\n "+str(ports[0]).split(' ')[0]+" Portua Aukeratua")
+            serial_port=str(ports[0]).split(' ')[0]
+        elif len(ports)>1:
+            sarrera=raw_input("\n Aukeratu Serie Portua: ")
+            print sarrera
         else:
             print "\n Ez da serie porturik topatu sisteman :("
             print " Programa amaitzen"
