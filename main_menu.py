@@ -835,20 +835,119 @@ while (True):
     if (menu_code==3):
         print "| Outputs                                                                     |"
         print "|-----------------------------------------------------------------------------|"
-        print "\t Test AC Clutch: "
-        print "\t Test AC Fan: "
-        print "\t Test MIL Lamp: "
-        print "\t Test Fuel Pump: "
-        print "\t Test Glow Plugs: "
-        print "\t Test Pulse Rev Counter: "
-        print "\t Test Turbo WG Modulator: "
-        print "\t Test Temperature Gauge: "
-        print "\t Test EGR Inlet Modulator: "
-        print "\t Test Injector 1: "
-        print "\t Test Injector 2: "
-        print "\t Test Injector 3: "
-        print "\t Test Injector 4: "
-        print "\t Test Injector 5: "
+        print "\t A: Test AC Clutch"
+        print "\t B: Test AC Fan"
+        print "\t C: Test MIL Lamp"
+        print "\t D: Test Fuel Pump"
+        print "\t E: Test Glow Plugs"
+        print "\t F: Test Pulse Rev Counter"
+        print "\t G: Test Turbo WG Modulator"
+        print "\t H: Test Temperature Gauge"
+        print "\t I: Test EGR Inlet Modulator"
+        print "\t J: Test Injector 1"
+        print "\t K: Test Injector 2"
+        print "\t L: Test Injector 3"
+        print "\t M: Test Injector 4"
+        print "\t N: Test Injector 5"
+        print "\n   Enter letter for test: "
+    
+        if (current_mode!=3):
+            initialize()
+            time.sleep(0.1)
+            response=send_packet(b"\x02\x3e\x01",3)             #Start outputs
+            current_mode=3
+            
+        while(True):
+            time.sleep(0.1)
+            response=send_packet(b"\x02\x3e\x01",3)
+            if msvcrt.kbhit():
+                if (msvcrt.getch()=="a" or msvcrt.getch()=="A"):
+                    response=send_packet(b"\x03\x30\xa3\xff",4)
+                    print "\n   Testing AC Clutch"
+                    time.sleep(2)
+                    break
+                elif (msvcrt.getch()=="b" or msvcrt.getch()=="B"):
+                    response=send_packet(b"\x03\x30\xa4\xff",4)
+                    print "\n   Testing AC FAN"
+                    time.sleep(2)
+                    break
+                elif (msvcrt.getch()=="c" or msvcrt.getch()=="C"):
+                    response=send_packet(b"\x03\x30\xa2\xff",4)
+                    print "\n   Testing MIL Lamp"
+                    time.sleep(2)
+                    break
+                elif (msvcrt.getch()=="d" or msvcrt.getch()=="D"):
+                    response=send_packet(b"\x03\x30\xa1\xff",4)
+                    print "\n   Testing Fuel Pump"
+                    time.sleep(2)
+                    break
+                elif (msvcrt.getch()=="e" or msvcrt.getch()=="E"):
+                    response=send_packet(b"\x03\x30\xb3\xff",4)
+                    print "\n   Testing Glow Plugs"
+                    time.sleep(2)
+                    break
+                elif (msvcrt.getch()=="f" or msvcrt.getch()=="F"):
+                    response=send_packet(b"\x03\x30\xb7\xff",4)
+                    print "\n   Testing Pulse Rev Counter"
+                    time.sleep(2)
+                    break
+                elif (msvcrt.getch()=="g" or msvcrt.getch()=="G"):
+                    response=send_packet(b"\x07\x30\xbe\xff\x00\x0a\x13\x88",4)
+                    print "\n   Testing Turbo Wastegate Modulator"
+                    time.sleep(2)
+                    break
+                elif (msvcrt.getch()=="h" or msvcrt.getch()=="H"):
+                    response=send_packet(b"\x03\x30\xba\xff",4)
+                    print "\n   Testing Temperature Gauge"
+                    time.sleep(2)
+                    break
+                elif (msvcrt.getch()=="i" or msvcrt.getch()=="I"):
+                    response=send_packet(b"\x07\x30\xbd\xff\x00\xfa\x13\x88",4)
+                    print "\n   Testing EGR Inlet Modulator"
+                    time.sleep(2)
+                    break
+                elif (msvcrt.getch()=="j" or msvcrt.getch()=="J"):
+                    response=send_packet(b"\x03\x31\xc2\x01",4)
+                    print "\n   Testing Injector 1"
+                    time.sleep(2)
+                    break
+                elif (msvcrt.getch()=="k" or msvcrt.getch()=="K"):
+                    response=send_packet(b"\x03\x31\xc2\x02",4)
+                    print "\n   Testing Injector 2"
+                    time.sleep(2)
+                    break
+                elif (msvcrt.getch()=="l" or msvcrt.getch()=="L"):
+                    response=send_packet(b"\x03\x31\xc2\x03",4)
+                    print "\n   Testing Injector 3"
+                    time.sleep(2)
+                    break
+                elif (msvcrt.getch()=="m" or msvcrt.getch()=="M"):
+                    response=send_packet(b"\x03\x31\xc2\x04",4)
+                    print "\n   Testing Injector 4"
+                    time.sleep(2)
+                    break
+                elif (msvcrt.getch()=="n" or msvcrt.getch()=="N"):
+                    response=send_packet(b"\x03\x31\xc2\x05",4)
+                    print "\n   Testing Injector 5"
+                    time.sleep(2)
+                    break                    
+                entrada=msvcrt.getch()
+                try:
+                    menu_code = int(entrada)
+                except:
+                    donothing=0
+                time.sleep(0.1)
+                if (menu_code != current_mode):                     #Logout
+                    if(ser.isOpen()):
+                        response=send_packet(b"\x01\x20",3)             
+                        response=send_packet(b"\x01\x82",3)
+                        ser.close()  
+                    current_mode=0
+                    if debug > 2:
+                        print ("Logging out")
+                    time.sleep(0.2)
+                    os.system("cls")
+                    break
     
     if (menu_code==4):
         print "| Settings                                                                    |"
@@ -899,7 +998,7 @@ while (True):
                         print ("Logging out")
                     time.sleep(0.2)
                     os.system("cls")
-                    continue
+                    break
     
     if (menu_code==6):
         print "| Maps                                                                        |"
