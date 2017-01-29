@@ -1,0 +1,52 @@
+<div id="body">
+
+  <h1>Parse JSON data using jQuery.getJSON()</h1>
+
+  <hr/>
+  <table border="1">
+    <tr>
+      <td>Url:</td>
+      <td><a class="myLink">DATA JSON</a>
+      </td>
+    </tr>
+    <tr>
+      <td>RPM:</td>
+      <td id="rpm"></td>
+    </tr>
+  </table>
+</div>
+
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+
+<script>
+
+// The Google Geocoding API url used to get the JSON data
+// var geocodingAPI = "http://maps.googleapis.com/maps/api/geocode/json?address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&sensor=true";
+var geocodingAPI = "http://192.168.1.244:8080/data.json";
+
+$.getJSON(geocodingAPI, function (json) {
+
+    
+    //var latitude = json.results[0].geometry.location.lat;
+    //console.log('Latitude : ', latitude);
+    
+	var rpm = json.fuelling.rpm;
+    console.log('RPM : ', rpm);
+
+    // Set the table td text
+    $('#rpm').text(rpm);
+});
+
+// Caching the link jquery object
+var $myLink = $('a.myLink');
+
+// Set the links properties
+$myLink.prop({
+    href: geocodingAPI,
+    title: 'Click on this link to open in a new window.'
+}).click(function (e) {
+    e.preventDefault();
+    window.open(this.href, '_blank');
+});
+
+</script>

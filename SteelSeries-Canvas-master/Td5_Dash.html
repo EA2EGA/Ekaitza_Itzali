@@ -154,9 +154,13 @@
 <input type="file" id="files" name="files[]" multiple />
 <output id="list"></output>
 	
+	
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+	
 <script>
     var radial1;
 
+	var geocodingAPI = "http://localhost:8080/data.json";
 
     function init() {
         if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -206,12 +210,29 @@
                             titleString: 'RPM',
                             threshold: 4000,
 							maxValue: 4200,
-                            lcdVisible: true
+                            lcdVisible: true,
+							fullScaleDeflectionTime: 1
                         });
 		        
-        setInterval(function(){ setRandomValue(radial1, 100); }, 100);
+        //setInterval(function(){ setRandomValue(radial1, 100); }, 100);
+		setInterval(function(){ get_fuelling(); }, 100);
     }
 
+	function get_fuelling(){
+		$.getJSON(geocodingAPI, function (json) {
+	  
+		//var latitude = json.results[0].geometry.location.lat;
+		//console.log('Latitude : ', latitude);
+		
+		var rpm = json.fuelling.rpm;
+		radial1.setValueAnimated(rpm);
+		console.log('RPM : ', rpm);
+
+		// Set the table td text
+		$('#rpm').text(rpm);
+		});
+	}
+	
     function setRandomValue(gauge, range) {
         gauge.setValueAnimated(Math.random() * range);
     }
