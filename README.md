@@ -23,7 +23,7 @@ Luca72 did a diagnostic system based on a Arduino Mega2650. Which had been very 
 
 ## List of Features:
 
-* Read Fuelling: 90% Done (EGR and Wastegate to be tested)
+* Read Fuelling: 110% Done (EGR and Wastegate to be tested, but getting more params than the Nanocom)
 * Read Switches: 95% Done (Auto Gearbox data is missing)
 * Read/Write Settings: Not yet
 * Read/Clear Faults: 100% Done

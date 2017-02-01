@@ -662,7 +662,7 @@ def get_fu():
         
         fu1=float(fu1)/100
         fu2=float(fu2)/100
-        fu3=float(fu3)/100
+        fu3=float(fu3)/10
         fu4=float(fu4)/100
         fu5=float(fu5)/100
         fu6=float(fu6)/100
@@ -810,10 +810,16 @@ while (True):
         print "\t Extras: "
         print "\t Driver fuel demand: ",fu1," mg/stroke"
         print "\t Idle fuel demand: ",fu8," mg/stroke"
+        print "\t Entrada Aire: ",fu3," mg/stroke"
         print "\t Solucin mapa A/F: ",fu6," mg/stroke"
         print "\t Limitador de Par: ",fu7," mg/stroke"
         print "\t Injected fuel: ",fu4," mg/stroke"
         print "\t Consumo (Calculado): ",fu4*rpm*(5/2)*60/1000000," kg/hora"
+        try:
+            afratio=fu3/fu4
+            print "\t A/F ratio (Calculado): ",afratio
+        except:
+            print "\t A/F ratio (Calculado): inf"
         
         # response=send_packet(b"\x02\x21\x1e",6)
         # print "\n\n\tHex is: %s." % ":".join("{:02x}".format(ord(c)) for c in response)
@@ -832,13 +838,13 @@ while (True):
         
         b_voltage=get_bvolt()
         rpm=get_rpm()
-        rpm_error=get_rpm_error()
-        speed=get_speed()
-        t_coolant, t_air, t_ext, t_fuel =get_temps()
-        p1, p2, p3, p4, supply = get_throttle()
-        aap, maf = get_aap_maf()
-        ap1, ap2 = get_pressures()
-        pb1,pb2,pb3,pb4,pb5=get_power_balance()
+        # rpm_error=get_rpm_error()
+        # speed=get_speed()
+        # t_coolant, t_air, t_ext, t_fuel =get_temps()
+        # p1, p2, p3, p4, supply = get_throttle()
+        # aap, maf = get_aap_maf()
+        # ap1, ap2 = get_pressures()
+        # pb1,pb2,pb3,pb4,pb5=get_power_balance()
         fu1,fu2,fu3,fu4,fu5,fu6,fu7,fu8=get_fu()
         
         if msvcrt.kbhit():
