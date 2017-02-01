@@ -1,0 +1,10 @@
+Fuelling parameters - \x02\x21\x1D Response
+	1.Driver Demand Solution
+	2.
+	3.
+	4.Current Injected? Probably Yes.....
+	5.
+	6.Smoke Map Solution
+	7.Torque Limiter Solution
+	8.Idle Demand Solution?
+	9.

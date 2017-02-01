@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 # BSD 2-Clause License
 
 # Copyright (c) 2017, xabiergarmendia@gmail.com
@@ -79,7 +80,7 @@ import os
 import logging, sys
 
 debug = 5;
-interframe_delay=0.01
+interframe_delay=0.02
 serial_port = 'COM3'
 
 b_voltage=0
@@ -367,7 +368,7 @@ def get_power_balance():
 os.system("cls")
 print ""
 print ""
-print "\t\t Land Rover Td5 Storm - Dignostic tool"
+print "\t\t Land Rover Td5 Storm - Fuelling Scanning"
 print ""
 print "Initing..."
 
@@ -389,7 +390,9 @@ if (len(response)==6):
 time.sleep(0.1)
 response=send_packet(b"\x02\x21\x02",15)             #Start Diagnostics
 
-time.sleep(2)
+time.sleep(0.5)
+
+values_to_print=[None]*128
 
 #Start requesting data
 while (True):
@@ -398,40 +401,118 @@ while (True):
     os.system("cls")
     print "\t\t Td5 Storm"
     print " "
-    print "\t Bateria Tentsioa: ", str(b_voltage), " Volt"
-    print "\t RPM: ", str(rpm)
-    print "\t RPM Error: ", str(rpm_error)
-    print "\t Abiadura: ", str(speed), " KMH"
-    print "\t Uraren tenperatura: ", str(t_coolant), " C"
-    print "\t Airearen tenperatura: ", str(t_air), " C"
-    print "\t Kanpoko tenperatura: ", str(t_ext), " C"
-    print "\t Gasoilaren tenperatura: ", str(t_fuel), " C"
-    print "\t Azeleragailuen pistak (Volt): ", str(p1), " ", str(p2), " ", str(p3), " ", str(p4), " ", str(supply)
-    print "\t Kolektoreko presioa: ", str(aap), " Bar"
-    print "\t Aire Masa neurgailua: ", str(maf)
-    print "\t Kanpoko presioa:", str(ap1), " Bar"
-    print "\t Turboaren presioa (kalkulatua):", str(aap-ap1), " Bar"
-    print "\t Zilindroak: ", str(pb1), " ", str(pb2), " ", str(pb3), " ", str(pb4), " ", str(pb5)
-    print "\t EGR Modulation: N/A"
-    print "\t EGR Inlet: N/A"
-    print "\t Wastegate MOdulation: N/A"
+    for i in values_to_print:
+        print i
+    values_to_print=[]
+    #response=send_packet(b"\x02\x21\x00",30)    # 7f Error response
+    # response=send_packet(b"\x02\x21\x01",6)    #
+    # try:
+        # values_to_print[ord(response[2])]=ord(response[3])*256+ord(response[4])
+    # except:
+        # err=1
+    # #response=send_packet(b"\x02\x21\x02",30)    # 7f Error response ¿Start Fuelling Req?
+    # response=send_packet(b"\x02\x21\x03",6)    #?
+    # try:
+        # values_to_print[ord(response[2])]=ord(response[3])*256+ord(response[4])
+    # except:
+        # err=1
+    # response=send_packet(b"\x02\x21\x04",6)    #?
+    # try:
+        # values_to_print[ord(response[2])]=ord(response[3])*256+ord(response[4])
+    # except:
+        # err=1
+    # response=send_packet(b"\x02\x21\x05",6)    #?
+    # try:
+        # values_to_print[ord(response[2])]=ord(response[3])*256+ord(response[4])
+    # except:
+        # err=1
+    # #response=send_packet(b"\x02\x21\x06",30)    # 7f Error response
+    # response=send_packet(b"\x02\x21\x07",6)    #?
+    # try:
+        # values_to_print[ord(response[2])]=ord(response[3])*256+ord(response[4])
+    # except:
+        # err=1
+    # #response=send_packet(b"\x02\x21\x08",30)    # 7f Error response
+    response=send_packet(b"\x02\x21\x09",6)    #RPM
+    try:
+        values_to_print.append(ord(response[3])*256+ord(response[4]))
+    except:
+        err=1
+    #response=send_packet(b"\x02\x21\x0A",30)    # 7f Error response
+    #response=send_packet(b"\x02\x21\x0B",30)    # 7f Error response
+    #response=send_packet(b"\x02\x21\x0C",30)    # 7f Error response
+    #response=send_packet(b"\x02\x21\x0D",5)    #Speed
+    #response=send_packet(b"\x02\x21\x0E",20)    #? Nothing changes
     
-        # response=send_packet(b"\x02\x21\x1e",6)
-        # print "\n\n\tHex is: %s." % ":".join("{:02x}".format(ord(c)) for c in response)
-        
-        # response=send_packet(b"\x02\x21\x36",6)
-        # print "\tHex is: %s." % ":".join("{:02x}".format(ord(c)) for c in response)
-        
-    b_voltage=get_bvolt()
-    rpm=get_rpm()
-    rpm_error=get_rpm_error()
-    speed=get_speed()
-    t_coolant, t_air, t_ext, t_fuel =get_temps()
-    p1, p2, p3, p4, supply = get_throttle()
-    aap, maf = get_aap_maf()
-    ap1, ap2 = get_pressures()
-    pb1,pb2,pb3,pb4,pb5=get_power_balance()
     
+    #response=send_packet(b"\x02\x21\x0F",30)    # 7f Error response
+    # response=send_packet(b"\x02\x21\x10",8)    #Battery
+    # #response=send_packet(b"\x02\x21\x11",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x12",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x13",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x14",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x15",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x16",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x17",30)    # 7f Error response
+    # response=send_packet(b"\x02\x21\x18",5)    #?
+    # #response=send_packet(b"\x02\x21\x19",30)    # 7f Error response
+    # response=send_packet(b"\x02\x21\x1A",20)    #Temperatures
+    # response=send_packet(b"\x02\x21\x1B",12)    #Throttle
+    # response=send_packet(b"\x02\x21\x1C",12)    #Pressure1
+    response=send_packet(b"\x02\x21\x1D",22)    #Fuelling parameters
+    for i in range (3,21,2):
+        try:
+            value=ord(response[i])*256+ord(response[i+1])
+            if value>32768:
+                value=value-65537
+            values_to_print.append(value)
+        except:
+            err=1
+    # response=send_packet(b"\x02\x21\x1E",6)    #?
+    # response=send_packet(b"\x02\x21\x1F",7)    #?
+    # response=send_packet(b"\x02\x21\x20",8)    #?
+    # response=send_packet(b"\x02\x21\x21",6)    #RPM Error
+    # #response=send_packet(b"\x02\x21\x22",30)    # 7f Error response
+    # response=send_packet(b"\x02\x21\x23",8)    #?
+    # response=send_packet(b"\x02\x21\x24",6)    #?
+    # #response=send_packet(b"\x02\x21\x25",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x26",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x27",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x28",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x29",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x2A",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x2B",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x2C",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x2D",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x2E",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x2F",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x30",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x31",30)    # 7f Error response
+    # response=send_packet(b"\x02\x21\x32",28)    #?
+    # response=send_packet(b"\x02\x21\x33",20)    #?
+    # #response=send_packet(b"\x02\x21\x34",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x35",30)    # 7f Error response
+    # response=send_packet(b"\x02\x21\x36",6)    #?
+    # response=send_packet(b"\x02\x21\x37",6)    #?
+    # response=send_packet(b"\x02\x21\x38",6)    #?
+    # response=send_packet(b"\x02\x21\x39",5)    #?
+    # #response=send_packet(b"\x02\x21\x3A",30)    # 7f Error response
+    # response=send_packet(b"\x02\x21\x3B",39)    #?
+    # response=send_packet(b"\x02\x21\x3C",12)    #?
+    # response=send_packet(b"\x02\x21\x3D",22)    #?
+    # response=send_packet(b"\x02\x21\x3E",27)    #?
+    # response=send_packet(b"\x02\x21\x3F",8)    #?
+    # response=send_packet(b"\x02\x21\x40",14)    #Power Balance
+    # #response=send_packet(b"\x02\x21\x41",30)    # 7f Error response
+    # response=send_packet(b"\x02\x21\x42",8)    #?
+    # response=send_packet(b"\x02\x21\x43",36)    #?
+    # # response=send_packet(b"\x02\x21\x44",30)    # 7f Error response
+    # response=send_packet(b"\x02\x21\x45",6)    #?
+    # response=send_packet(b"\x02\x21\x46",8)    #?
+    # #response=send_packet(b"\x02\x21\x47",30)    # 7f Error response
+    # #response=send_packet(b"\x02\x21\x48",30)    # 7f Error response
+    
+       
     # time.sleep(0.5)
 
 

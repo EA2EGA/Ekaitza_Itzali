@@ -338,7 +338,7 @@ fault_code_35_01, fault_code_35_02, fault_code_35_03, fault_code_35_04, fault_co
 
 
 
-debug = 0;
+debug = 2;
 interframe_delay=0.002
 serial_port = 'COM3'
 
@@ -374,6 +374,15 @@ ccr=0
 ccsa=0
 accr=0
 acfr=0
+
+fu1=0
+fu2=0
+fu3=0
+fu4=0
+fu5=0
+fu6=0
+fu7=0
+fu8=0
 
 fault_list = []
 
@@ -619,6 +628,50 @@ def get_power_balance():
         
     return pb1,pb2,pb3,pb4,pb5
     
+def get_fu():
+    global fu1,fu2,fu3,fu4,fu5,fu6,fu7,fu8
+    response=send_packet(b"\x02\x21\x1D",22)
+    if len(response)<22:
+        i=0
+    else:
+        fu1=ord(response[3])*256+ord(response[4])
+        fu2=ord(response[5])*256+ord(response[6])
+        fu3=ord(response[7])*256+ord(response[8])
+        fu4=ord(response[9])*256+ord(response[10])
+        fu5=ord(response[11])*256+ord(response[12])
+        fu6=ord(response[13])*256+ord(response[14])
+        fu7=ord(response[15])*256+ord(response[16])
+        fu8=ord(response[17])*256+ord(response[18])
+       
+        if fu1>32768:
+            fu1=fu1-65537
+        if fu2>32768:
+            fu2=fu2-65537
+        if fu3>32768:
+            fu3=fu3-65537
+        if fu4>32768:
+            fu4=fu4-65537
+        if fu5>32768:
+            fu5=fu5-65537
+        if fu6>32768:
+            fu6=fu6-65537
+        if fu7>32768:
+            fu7=fu7-65537
+        if fu8>32768:
+            fu8=fu8-65537
+        
+        fu1=float(fu1)/100
+        fu2=float(fu2)/100
+        fu3=float(fu3)/100
+        fu4=float(fu4)/100
+        fu5=float(fu5)/100
+        fu6=float(fu6)/100
+        fu7=float(fu7)/100
+        fu8=float(fu8)/100
+    
+        
+    return fu1,fu2,fu3,fu4,fu5,fu6,fu7,fu8
+    
     
 def get_inputs():
     global br1,br2,clutch,xfer,ccm,ccr,ccsa,accr,acfr
@@ -753,6 +806,14 @@ while (True):
         print "\t EGR Modulation: N/A"
         print "\t EGR Inlet: N/A"
         print "\t Wastegate Modulation: N/A"
+        print "\t -------------------------"
+        print "\t Extras: "
+        print "\t Driver fuel demand: ",fu1," mg/stroke"
+        print "\t Idle fuel demand: ",fu8," mg/stroke"
+        print "\t Solucin mapa A/F: ",fu6," mg/stroke"
+        print "\t Limitador de Par: ",fu7," mg/stroke"
+        print "\t Injected fuel: ",fu4," mg/stroke"
+        print "\t Consumo (Calculado): ",fu4*rpm*(5/2)*60/1000000," kg/hora"
         
         # response=send_packet(b"\x02\x21\x1e",6)
         # print "\n\n\tHex is: %s." % ":".join("{:02x}".format(ord(c)) for c in response)
@@ -778,6 +839,7 @@ while (True):
         aap, maf = get_aap_maf()
         ap1, ap2 = get_pressures()
         pb1,pb2,pb3,pb4,pb5=get_power_balance()
+        fu1,fu2,fu3,fu4,fu5,fu6,fu7,fu8=get_fu()
         
         if msvcrt.kbhit():
             menu_code = int(msvcrt.getch())
