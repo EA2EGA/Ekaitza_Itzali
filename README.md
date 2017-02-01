@@ -42,6 +42,19 @@ The ECU communicates with the diagnostic equipment using the ISO 9141-2 protocol
 
 ### Initialization
 
-To start a diagnostic session, the diagnostic system does a Fast Init as described in the ISO 9141-2, holding the K-Line low during 25ms.
+To start a diagnostic session, the diagnostic system does a Fast Init as described in the ISO 9141-2, holding the K-Line low during 25ms. After that it sends a initialization frame, a diagnostics start request, and a authentification Seed request. The ECU answers with a Seed, and the diagnostic system has to answer with the correct Key. If a correct key is sent, the ECU answers with a Auth OK message, and allows to read its parameters.
 
-After that it sends a initialization frame, a diagnostics start request, a 
+Here you can see the initialization process. The last byte, between parhentesis, is the checksum
+```
+Diag: 25ms Low
+Diag: 25ms High
+Diag: Switch to 10400 Baud
+Diag: 0x81 0x13 0xf7 0x81 (0x0c)
+ECU : 0x03 0xc1 0x57 0x8f (0xaa)
+Diag: 0x02 0x10 0xa0 (0xb2)
+ECU : 0x01 0x50 (0x51)
+Diag: 0x02 0x27 0x01 (0x2a)                Seed Request
+ECU : 0x04 0x67 0x01 [Seed_L] [Seed_H] (0x62)      Seed Answer
+Diag: 0x04 0x27 0x02 [Key_L]  [Key_H]  (0x43)      Key Response
+ECU : 0x02 0x67 0x02 (0x6b)                Auth Ok!
+```
