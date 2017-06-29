@@ -454,27 +454,29 @@ while (True):
     # #response=send_packet(b"\x02\x21\x15",30)    # 7f Error response
     # #response=send_packet(b"\x02\x21\x16",30)    # 7f Error response
     # #response=send_packet(b"\x02\x21\x17",30)    # 7f Error response
-    # response=send_packet(b"\x02\x21\x18",5)    #?
+    # response=send_packet(b"\x02\x21\x18",5)    #?Fixed val
     # #response=send_packet(b"\x02\x21\x19",30)    # 7f Error response
     # response=send_packet(b"\x02\x21\x1A",20)    #Temperatures
     # response=send_packet(b"\x02\x21\x1B",12)    #Throttle
     # response=send_packet(b"\x02\x21\x1C",12)    #Pressure1
-    response=send_packet(b"\x02\x21\x1D",22)    #Fuelling parameters
-    for i in range (3,21,2):
-        try:
-            value=ord(response[i])*256+ord(response[i+1])
-            if value>32768:
-                value=value-65537
-            values_to_print.append(value)
-        except:
-            err=1
-    # response=send_packet(b"\x02\x21\x1E",6)    #?
-    # response=send_packet(b"\x02\x21\x1F",7)    #?
-    # response=send_packet(b"\x02\x21\x20",8)    #?
+    # response=send_packet(b"\x02\x21\x1D",22)    #Fuelling parameters
+    # for i in range (3,21,2):
+        # try:
+            # value=ord(response[i])*256+ord(response[i+1])
+            # if value>32768:
+                # value=value-65537
+            # values_to_print.append(value)
+        # except:
+            # err=1
+    #response=send_packet(b"\x02\x21\x1E",6)    #? No cambia
+    # response=send_packet(b"\x02\x21\x1F",7)    #? No cambia
+    #response=send_packet(b"\x02\x21\x20",8)    #
     # response=send_packet(b"\x02\x21\x21",6)    #RPM Error
     # #response=send_packet(b"\x02\x21\x22",30)    # 7f Error response
-    # response=send_packet(b"\x02\x21\x23",8)    #?
-    # response=send_packet(b"\x02\x21\x24",6)    #?
+    # response=send_packet(b"\x02\x21\x23",8)    # Pressures (filer box?)
+    
+    # response=send_packet(b"\x02\x21\x24",6)    #? Fixed at 393
+    
     # #response=send_packet(b"\x02\x21\x25",30)    # 7f Error response
     # #response=send_packet(b"\x02\x21\x26",30)    # 7f Error response
     # #response=send_packet(b"\x02\x21\x27",30)    # 7f Error response
@@ -488,18 +490,36 @@ while (True):
     # #response=send_packet(b"\x02\x21\x2F",30)    # 7f Error response
     # #response=send_packet(b"\x02\x21\x30",30)    # 7f Error response
     # #response=send_packet(b"\x02\x21\x31",30)    # 7f Error response
-    # response=send_packet(b"\x02\x21\x32",28)    #?
-    # response=send_packet(b"\x02\x21\x33",20)    #?
+    #response=send_packet(b"\x02\x21\x32",28)    #? Fixed values...
+    
+    # response=send_packet(b"\x02\x21\x33",20)    #? Fixed values...
     # #response=send_packet(b"\x02\x21\x34",30)    # 7f Error response
     # #response=send_packet(b"\x02\x21\x35",30)    # 7f Error response
-    # response=send_packet(b"\x02\x21\x36",6)    #?
-    # response=send_packet(b"\x02\x21\x37",6)    #?
-    # response=send_packet(b"\x02\x21\x38",6)    #?
-    # response=send_packet(b"\x02\x21\x39",5)    #?
+    # response=send_packet(b"\x02\x21\x36",6)    #? Fixed val
+    # response=send_packet(b"\x02\x21\x37",6)    #? Fixed val
+    # response=send_packet(b"\x02\x21\x38",6)    #? Fixed val
+    # response=send_packet(b"\x02\x21\x39",5)    #? Fixed val
     # #response=send_packet(b"\x02\x21\x3A",30)    # 7f Error response
-    # response=send_packet(b"\x02\x21\x3B",39)    #?
-    # response=send_packet(b"\x02\x21\x3C",12)    #?
+    # response=send_packet(b"\x02\x21\x3B",39)    #? Fixed values
+
+    response=send_packet(b"\x02\x21\x3C",12)    #?
+    for i in range (3,11,2):
+        try:
+            value=ord(response[i])*256+ord(response[i+1])
+            if value>32768:
+                value=value-65537
+            values_to_print.append(value)
+        except:
+            err=1
     # response=send_packet(b"\x02\x21\x3D",22)    #?
+    for i in range (3,21,2):
+        try:
+            value=ord(response[i])*256+ord(response[i+1])
+            if value>32768:
+                value=value-65537
+            values_to_print.append(value)
+        except:
+            err=1
     # response=send_packet(b"\x02\x21\x3E",27)    #?
     # response=send_packet(b"\x02\x21\x3F",8)    #?
     # response=send_packet(b"\x02\x21\x40",14)    #Power Balance

@@ -155,13 +155,17 @@
 <output id="list"></output>
 	
 	
-<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="js/jquery-1.11.0.min.js"></script>
 	
 <script>
     var radial1;
 
 	var geocodingAPI = "http://localhost:8080/data.json";
 
+	window.onload = function() {
+		init();
+	};
+	
     function init() {
         if (window.File && window.FileReader && window.FileList && window.Blob) {
 		  // Great success! All the File APIs are supported.
@@ -249,10 +253,6 @@
         gauge.setRollAnimated(roll);
     }
 
-    function setOdometer(gauge) {
-        odoValue += 0.02
-        gauge.setOdoValue(odoValue);
-    }
 
 	radial1.setFrameDesign(steelseries.FrameDesign.TILTED_BLACK);
 	

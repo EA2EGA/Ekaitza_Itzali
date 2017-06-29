@@ -338,7 +338,7 @@ fault_code_35_01, fault_code_35_02, fault_code_35_03, fault_code_35_04, fault_co
 
 
 
-debug = 2;
+debug = 2
 interframe_delay=0.002
 serial_port = 'COM3'
 
@@ -353,7 +353,7 @@ t_fuel =0
 p1=0
 p2=0
 p3=0
-p4=0
+p4=-1
 supply = 0
 aap=0
 maf =0
@@ -387,7 +387,7 @@ fu8=0
 fault_list = []
 
 def fast_init():
-    ser = serial.Serial(serial_port, 300, timeout=0.1) #CP210x is configured for 300 being 360
+    ser = serial.Serial(serial_port, 360, timeout=0.1) #CP210x is configured for 300 being 360
     command=b"\x00"
     ser.write(command) #Send a 25ms pulse
     time.sleep(0.05)
@@ -539,18 +539,24 @@ def get_temps():
 def get_throttle():
     global p1, p2, p3, p4, supply
     response=send_packet(b"\x02\x21\x1B",14)
-    if len(response)<14:
+    if len(response)<12:
         # p1=0
         # p2=0
         # p3=0
         # p4=0
         # supply=0
         i=0
+    elif len(response)==12:
+        p1=float(ord(response[3])*256+ord(response[4]))/1000
+        p2=float(ord(response[5])*256+ord(response[6]))/1000
+        p3=float(ord(response[7])*256+ord(response[8]))/100
+        p4=-1
+        supply=float(ord(response[9])*256+ord(response[10]))/1000
     else:
         p1=float(ord(response[3])*256+ord(response[4]))/1000
         p2=float(ord(response[5])*256+ord(response[6]))/1000
         p3=float(ord(response[7])*256+ord(response[8]))/1000
-        p4=float(ord(response[9])*256+ord(response[10]))/1000
+        p4=float(ord(response[9])*256+ord(response[10]))/100
         supply=float(ord(response[11])*256+ord(response[12]))/1000
     
     
@@ -797,7 +803,10 @@ while (True):
         print "\t Airearen tenperatura: ", str(t_air), " C"
         print "\t Kanpoko tenperatura: ", str(t_ext), " C"
         print "\t Gasoilaren tenperatura: ", str(t_fuel), " C"
-        print "\t Azeleragailuen pistak (Volt): ", str(p1), " ", str(p2), " ", str(p3), " ", str(p4), " ", str(supply)
+        if p4==-1:
+            print "\t Azeleragailua - P1 P2 Supply (Volt): ", str(p1), " ", str(p2)," ", str(supply)
+        else:
+            print "\t Azeleragailua - P1 P2 P3 Supply (Volt): ", str(p1), " ", str(p2), " ", str(p3)," ", str(supply)
         print "\t Kolektoreko presioa: ", str(aap), " Bar"
         print "\t Aire Masa neurgailua: ", str(maf)
         print "\t Kanpoko presioa:", str(ap1), " Bar"
@@ -808,6 +817,10 @@ while (True):
         print "\t Wastegate Modulation: N/A"
         print "\t -------------------------"
         print "\t Extras: "
+        if p4==-1:
+            print "\t Driver pedal demand: ",p3," %"
+        else:
+            print "\t Driver pedal demand: ",p4," %"
         print "\t Driver fuel demand: ",fu1," mg/stroke"
         print "\t Idle fuel demand: ",fu8," mg/stroke"
         print "\t Entrada Aire: ",fu3," mg/stroke"
@@ -838,13 +851,14 @@ while (True):
         
         b_voltage=get_bvolt()
         rpm=get_rpm()
-        # rpm_error=get_rpm_error()
-        # speed=get_speed()
-        # t_coolant, t_air, t_ext, t_fuel =get_temps()
-        # p1, p2, p3, p4, supply = get_throttle()
-        # aap, maf = get_aap_maf()
-        # ap1, ap2 = get_pressures()
-        # pb1,pb2,pb3,pb4,pb5=get_power_balance()
+        
+        rpm_error=get_rpm_error()
+        speed=get_speed()
+        t_coolant, t_air, t_ext, t_fuel =get_temps()
+        p1, p2, p3, p4, supply = get_throttle()
+        aap, maf = get_aap_maf()
+        ap1, ap2 = get_pressures()
+        pb1,pb2,pb3,pb4,pb5=get_power_balance()
         fu1,fu2,fu3,fu4,fu5,fu6,fu7,fu8=get_fu()
         
         if msvcrt.kbhit():
