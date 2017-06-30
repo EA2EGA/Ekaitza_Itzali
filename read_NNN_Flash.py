@@ -79,16 +79,18 @@ import os
 import logging, sys
 import msvcrt
 from pyftdi.ftdi import Ftdi
+import binascii
 
 debug = 2
 interframe_delay=0.002
 serial_port = 'COM3'
 
 def fast_init():
-    ser = serial.Serial(serial_port, 300, timeout=0.1) #CP210x is configured for 300 being 360
+    #ser = serial.Serial(serial_port, 360, timeout=0.1) #CP210x is configured for 300 being 360
+    ser = serial.Serial(serial_port, 300, timeout=0.1)
     command=b"\x00"
     ser.write(command) #Send a 25ms pulse
-    time.sleep(0.05)
+    time.sleep(0.025)
     ser.close()
 
 def send_packet(data,res_size):
@@ -96,13 +98,11 @@ def send_packet(data,res_size):
     time.sleep(interframe_delay)
     
     lendata=len(data)
-    
     modulo=0
     for i in range(0,lendata):
-        modulo = modulo + ord(data[i]) 
+        modulo = modulo + data[i]
     modulo = modulo % 256
-    
-    to_send=data+chr(modulo)
+    to_send=data+chr(modulo).encode('latin1')
     ser.write(to_send)
     time.sleep(interframe_delay)
 
@@ -111,32 +111,31 @@ def send_packet(data,res_size):
 
     read_val_s = read_val[0:ignore]
     if debug > 2:    
-        print "Data Sent: %s." % ":".join("{:02x}".format(ord(c)) for c in read_val_s)
+        print ("Data Sent: %s." % binascii.b2a_hex(read_val_s))
     read_val_r = read_val[ignore:]
     if debug > 2: 
-        print "Data Received: %s." % ":".join("{:02x}".format(ord(c)) for c in read_val_r)
+        print ("Data Received: %s." % binascii.b2a_hex(read_val_r))
     
     modulo=0
     for i in range(0,len(read_val_r)-1):
-        modulo = modulo + ord(read_val_r[i]) 
+        modulo = modulo + read_val_r[i] 
     modulo = modulo % 256
     
     if (len(read_val_r)>2):
-        if (modulo!=ord(read_val_r[len(read_val_r)-1])): #Checksum error
+        if (modulo!=read_val_r[len(read_val_r)-1]): #Checksum error
             read_val_r=""
             if debug > 1:
-                print "Checksum ERROR"
+                print ("Checksum ERROR")
        
     return read_val_r
 
 def seed_key(read_val_r):
     seed = read_val_r[3:5]
     if debug > 1:
-        print "\tSeed is: %s." % ":".join("{:02x}".format(ord(c)) for c in seed)
-    
-    seed_int=ord(seed[0])*256+ord(seed[1])
+        print ("\tSeed is: %s." % binascii.b2a_hex(seed))
+    seed_int=seed[0]*256+seed[1]
     if debug > 1:
-        print "\tSeed integer: %s." % seed_int
+        print ("\tSeed integer: %s." % seed_int)
     
     seed=seed_int
 
@@ -160,11 +159,11 @@ def seed_key(read_val_r):
         high=seed/256
         low=seed%256
 
-    key=chr(high)+chr(low)
+    key=chr(int(high)).encode('latin1')+chr(int(low)).encode('latin1')
     if debug > 1:
-        print "\tKey hex: %s." % ":".join("{:02x}".format(ord(c)) for c in key)
+        print ("\tKey hex: %s." % binascii.b2a_hex(key))
         
-    key_answer=b"\x04\x27\x02"+key
+    key_answer=b"\x04\x27\x02"+chr(int(high)).encode('latin1')+chr(int(low)).encode('latin1')
     
     return key_answer
     
@@ -193,23 +192,39 @@ print ("\n\tLand Rover Td5 Map Reader\n")
 
 f=open('outputfile.bin', 'wb')
 
-byte1=17
-byte2=0
-byte3=0
-while (byte1<20):
-    address=chr(byte1)+chr(byte2)+chr(byte3)
-    sys.stdout.write("\r\tReading Address: 0x%s" % "".join("{:02x}".format(ord(c)) for c in address))
-    sys.stdout.flush()
+byte1=0x11
+byte2=0x00
+byte3=0x00
+while (1):
+
+    percent=((byte1-0x11)*256*256+byte2*256+byte3)/(3*256*256)
+    address=bytes([byte1])+bytes([byte2])+bytes([byte3])
+    print("\tReading Address: %s - %s Complete" % (binascii.b2a_hex(address),'{:.1%}'.format(percent)), end="\r")
+
+    if (byte1==0x13 and byte2==0xff):
+        response=send_packet(b"\x05\x23"+bytes([byte1])+bytes([byte2])+bytes([byte3])+b"\x10",20)
+        while (len(response)<19):
+            response=send_packet(b"\x05\x23"+bytes([byte1])+bytes([byte2])+bytes([byte3])+b"\x10",20)
+        f.write(response[3:19])
+    else:
+        response=send_packet(b"\x05\x23"+bytes([byte1])+bytes([byte2])+bytes([byte3])+b"\x40",68)
+        while (len(response)<67):
+            response=send_packet(b"\x05\x23"+bytes([byte1])+bytes([byte2])+bytes([byte3])+b"\x40",68)
+        f.write(response[3:67])
     
-    response=send_packet(b"\x05\x23"+address+"\x40",68)
-    f.write(response[3:67])
-    byte3=byte3+0x40
+    if (byte1==0x13 and byte2==0xff and byte3==0xe0):
+        break
+
+    if (byte1==0x13 and byte2==0xff):
+        byte3=byte3+0x10
+    else:
+        byte3=byte3+0x40
+        
     if byte3==256:
         byte2=byte2+1
         byte3=0
         if byte2==256:
             byte1=byte1+1
             byte2=0
-
 
 f.close()
