@@ -81,13 +81,13 @@ import msvcrt
 from pyftdi.ftdi import Ftdi
 import binascii
 
-debug = 2
+debug = 5
 interframe_delay=0.002
 serial_port = 'COM3'
 
 def fast_init():
     #ser = serial.Serial(serial_port, 360, timeout=0.1) #CP210x is configured for 300 being 360
-    ser = serial.Serial(serial_port, 300, timeout=0.1)
+    ser = serial.Serial(serial_port, 360, timeout=0.1)
     command=b"\x00"
     ser.write(command) #Send a 25ms pulse
     time.sleep(0.025)

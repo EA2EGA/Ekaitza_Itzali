@@ -25,12 +25,14 @@ Luca72 did a diagnostic system based on a Arduino Mega2650. Which had been very 
 
 * Read Fuelling: 110% Done (EGR and Wastegate to be tested, but getting more params than the Nanocom)
 * Read Switches: 95% Done (Auto Gearbox data is missing)
-* Read/Write Settings: Not yet
+* Read/Write Settings: 30% Done (Read VIN, fuel and map variants and VIN)
 * Read/Clear Faults: 100% Done
 * Test Outputs: 100% Done
 * Security Status: Not yet
 * Learn Alarm Code: Not yet
-* Read/Write Map: Not yet
+* Read/Write Map: 50% (Reading maps achieved)
+
+* Serve fuelling data via JSON: 0%
 
 ## Land Rover Td5 Storm Engine ECU OBD-II Protocol
 

@@ -339,9 +339,10 @@ fault_code_35_01, fault_code_35_02, fault_code_35_03, fault_code_35_04, fault_co
 
 
 
-debug = 2
+debug = 5
 interframe_delay=0.002
 serial_port = 'COM3'
+logout_sleep=1
 
 b_voltage=0
 rpm=0
@@ -385,11 +386,17 @@ fu6=0
 fu7=0
 fu8=0
 
+ecu_type=""
+map_variant=""
+fuel_variant=""
+homologation=""
+VIN=""
+
 fault_list = []
 
 def fast_init():
-    #ser = serial.Serial(serial_port, 360, timeout=0.1) #CP210x is configured for 300 being 360
-    ser = serial.Serial(serial_port, 300, timeout=0.1)
+    ser = serial.Serial(serial_port, 360, timeout=0.1) #CP210x is configured for 300 being 360
+    #ser = serial.Serial(serial_port, 300, timeout=0.1)
     command=b"\x00"
     ser.write(command) #Send a 25ms pulse
     time.sleep(0.025)
@@ -468,6 +475,12 @@ def seed_key(read_val_r):
     key_answer=b"\x04\x27\x02"+chr(int(high)).encode('latin1')+chr(int(low)).encode('latin1')
     
     return key_answer
+
+def bcdtoint(char):
+    answer=0
+    answer = answer + int(char/16)*10
+    answer = answer + (char%16)
+    return answer
     
 def initialize():
     global ser
@@ -696,7 +709,26 @@ def get_fu():
         
     return fu1,fu2,fu3,fu4,fu5,fu6,fu7,fu8
     
+   
+def get_setting():
+    global ecu_type,map_variant,fuel_variant,homologation,VIN
+    response=send_packet(b"\x02\x1a\x87",50)        #Get VIN
+    if (len(response)>40): #is a NNN
+        VIN='{}{:02d}{:02d}{:02d}'.format(response[3:14].decode('latin1'),bcdtoint(response[14]),bcdtoint(response[15]),bcdtoint(response[16]))
+        response=send_packet(b"\x02\x1a\x9a",10)        #Get ECU Type
+        ecu_type='{}{:02d}{:02d}{:02d}'.format(response[3:6].decode('latin1'),bcdtoint(response[6]),bcdtoint(response[7]),bcdtoint(response[8]))
+        time.sleep(0.1)
     
+    response=send_packet(b"\x02\x1a\x9b",8)        #?
+    response=send_packet(b"\x02\x1a\x9c",8)        #?
+    
+    response=send_packet(b"\x02\x21\x32",28)        #Get map Variant
+    map_variant='{}'.format(response[3:11].decode('latin1'))
+    fuel_variant='{}'.format(response[11:19].decode('latin1'))
+    homologation='{}'.format(response[19:23].decode('latin1'))
+    
+    
+   
 def get_inputs():
     global br1,br2,clutch,xfer,ccm,ccr,ccsa,accr,acfr
     response=send_packet(b"\x02\x21\x1e",6)
@@ -747,14 +779,14 @@ current_mode=0;
 ser=0
 
 while (True):
-    time.sleep(0.1)
+    time.sleep(0.01)
     os.system("cls")
     print("-------------------------------------------------------------------------------")
     print("|                Land Rover Td5 Motorren Azterketa Programa                   |")
-    print("| Port: "+serial_port+" - Auth: Done - Connection: OK - Status: NOT Immobilized         |")
     print("-------------------------------------------------------------------------------")
     print("| 1. Fuelling - 2. Inputs - 3. Outputs - 4. Settings - 5. Faults - 6. Map     |")
     print("-------------------------------------------------------------------------------")
+    print("\tPort: "+serial_port)                                                
     if (menu_code==0):
         print("\n Land Rover Td5 Motorren Azterketa Programa")
         print("\t\t Ongi Etorri")
@@ -785,7 +817,7 @@ while (True):
             #exit()
         
         # initiazile()
-        time.sleep(1)
+        time.sleep(2)
         
         menu_code=1
         continue
@@ -870,7 +902,7 @@ while (True):
                 current_mode=0
                 if debug > 2:              
                     print ("Logging out")
-                time.sleep(0.2)
+                time.sleep(logout_sleep)
                 os.system("cls")
                 continue
     
@@ -908,7 +940,7 @@ while (True):
                 current_mode=0
                 if debug > 2:
                     print ("Logging out")
-                time.sleep(0.2)
+                time.sleep(logout_sleep)
                 os.system("cls")
                 continue
         
@@ -1025,13 +1057,42 @@ while (True):
                     current_mode=0
                     if debug > 2:
                         print ("Logging out")
-                    time.sleep(0.2)
+                    time.sleep(logout_sleep)
                     os.system("cls")
                     break
     
     if (menu_code==4):
         print("| Settings                                                                    |")
         print("|-----------------------------------------------------------------------------|")
+    
+        if (current_mode!=4):
+            initialize()
+            time.sleep(0.1)
+            response=send_packet(b"\x02\x3e\x01",3)             #Start outputs
+            current_mode=4
+            time.sleep(0.5)
+        
+        get_setting()
+        
+        print("| VIN: "+VIN)
+        print("| ECU Model: "+ecu_type)
+        print("| Map Variant: "+map_variant)
+        print("| Fuel variant: "+fuel_variant)
+        print("| Homologation: "+homologation)
+        
+        
+        time.sleep(0.5)
+        if (menu_code != current_mode):                     #Logout
+            if(ser.isOpen()):
+                response=send_packet(b"\x01\x20",3)             
+                response=send_packet(b"\x01\x82",3)
+                ser.close()  
+            current_mode=0
+            if debug > 2:
+                print ("Logging out")
+            time.sleep(logout_sleep)
+            os.system("cls")
+            break
     
     if (menu_code==5):
         
@@ -1076,7 +1137,7 @@ while (True):
                     current_mode=0
                     if debug > 2:
                         print ("Logging out")
-                    time.sleep(0.2)
+                    time.sleep(logout_sleep)
                     os.system("cls")
                     break
     
