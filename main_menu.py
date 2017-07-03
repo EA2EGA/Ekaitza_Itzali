@@ -339,7 +339,7 @@ fault_code_35_01, fault_code_35_02, fault_code_35_03, fault_code_35_04, fault_co
 
 
 
-debug = 5
+debug = 0
 interframe_delay=0.002
 serial_port = 'COM3'
 logout_sleep=1
@@ -784,9 +784,13 @@ while (True):
     print("-------------------------------------------------------------------------------")
     print("|                Land Rover Td5 Motorren Azterketa Programa                   |")
     print("-------------------------------------------------------------------------------")
-    print("| 1. Fuelling - 2. Inputs - 3. Outputs - 4. Settings - 5. Faults - 6. Map     |")
+    print("|                                                                             |", end="\r")
+    print("| COM Port: %s - Map: %s - Fuel: %s - Homol: %s"% (serial_port,map_variant,fuel_variant,homologation))
+    print("|                                                                             |", end="\r")    
+    print("| VIN: %s - ECU Model: %s"% (VIN,ecu_type))
     print("-------------------------------------------------------------------------------")
-    print("\tPort: "+serial_port)                                                
+    print("| 1. Fuelling - 2. Inputs - 3. Outputs - 4. Settings - 5. Faults - 6. Map     |")
+    print("-------------------------------------------------------------------------------")                                       
     if (menu_code==0):
         print("\n Land Rover Td5 Motorren Azterketa Programa")
         print("\t\t Ongi Etorri")
@@ -816,8 +820,21 @@ while (True):
             print(" Programa amaitzen")
             #exit()
         
-        # initiazile()
-        time.sleep(2)
+        initialize()
+        time.sleep(0.1)
+        response=send_packet(b"\x02\x3e\x01",3)             #Start outputs
+        current_mode=4
+        time.sleep(0.5)
+        
+        get_setting()
+        
+        response=send_packet(b"\x01\x20",3)             
+        response=send_packet(b"\x01\x82",3)
+        ser.close()  
+        current_mode=0
+        time.sleep(logout_sleep)
+        
+        time.sleep(0.5)
         
         menu_code=1
         continue
@@ -1144,11 +1161,63 @@ while (True):
     if (menu_code==6):
         print("| Maps                                                                        |")
         print("|-----------------------------------------------------------------------------|")
-    
-    if msvcrt.kbhit():
-        entrada=msvcrt.getch()
-        try:
-            menu_code = int(entrada)
-        except:
-            donothing=0
-        time.sleep(0.1)
+        if (ecu_type!=""):
+            print("|   FLASHABLE ECU                                                             |")
+            print("|   R: Read Map    W: Write Map                                               |")
+        else:
+            print("|   NON FLASHABLE ECU                                                         |")
+        print("|-----------------------------------------------------------------------------|")
+        while (1):
+            if msvcrt.kbhit():
+                entrada=msvcrt.getch()
+                if (entrada.decode('latin1')=="R" or entrada.decode('latin1')=="r"): #Clear Faults
+                    print("|                                                                             |", end="\r")
+                    print("|     Reading Map - ", end="")
+                    name = input("Write filename to save: ")
+                    f=open(name, 'wb')
+                    
+                    initialize()
+                    time.sleep(0.2)
+                    byte1=0x11
+                    byte2=0x00
+                    byte3=0x00
+                    while (1):
+
+                        percent=((byte1-0x11)*256*256+byte2*256+byte3)/(3*256*256)
+                        address=bytes([byte1])+bytes([byte2])+bytes([byte3])
+                        print("|                                                                             |", end="\r")
+                        print("|\tReading Address: %s - %s Complete" % (binascii.b2a_hex(address),'{:.1%}'.format(percent)), end="\r")
+
+                        if (byte1==0x13 and byte2==0xff):
+                            response=send_packet(b"\x05\x23"+bytes([byte1])+bytes([byte2])+bytes([byte3])+b"\x10",20)
+                            while (len(response)<19):
+                                response=send_packet(b"\x05\x23"+bytes([byte1])+bytes([byte2])+bytes([byte3])+b"\x10",20)
+                            f.write(response[3:19])
+                        else:
+                            response=send_packet(b"\x05\x23"+bytes([byte1])+bytes([byte2])+bytes([byte3])+b"\x40",68)
+                            while (len(response)<67):
+                                response=send_packet(b"\x05\x23"+bytes([byte1])+bytes([byte2])+bytes([byte3])+b"\x40",68)
+                            f.write(response[3:67])
+                        
+                        if (byte1==0x13 and byte2==0xff and byte3==0xe0):
+                            break
+
+                        if (byte1==0x13 and byte2==0xff):
+                            byte3=byte3+0x10
+                        else:
+                            byte3=byte3+0x40
+                            
+                        if byte3==256:
+                            byte2=byte2+1
+                            byte3=0
+                            if byte2==256:
+                                byte1=byte1+1
+                                byte2=0
+
+                    f.close()
+                    break
+                try:
+                    menu_code = int(entrada)
+                except:
+                    donothing=0
+            time.sleep(0.1)
