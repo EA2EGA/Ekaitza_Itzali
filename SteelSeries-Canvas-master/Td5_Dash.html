@@ -160,7 +160,7 @@
 <script>
     var radial1;
 
-	var geocodingAPI = "http://localhost:8080/data.json";
+	var jsonurl = "http://localhost:8080/SteelSeries-Canvas-master/data.json";
 
 	window.onload = function() {
 		init();
@@ -223,18 +223,23 @@
     }
 
 	function get_fuelling(){
-		$.getJSON(geocodingAPI, function (json) {
-	  
-		//var latitude = json.results[0].geometry.location.lat;
-		//console.log('Latitude : ', latitude);
-		
-		var rpm = json.fuelling.rpm;
-		radial1.setValueAnimated(rpm);
-		console.log('RPM : ', rpm);
+		var data;
+		$.ajax({
+		  dataType: "json",
+		  url: jsonurl,
+		  data: data,
+		  success: function(data) {
+			var rpm = data.fuelling.rpm;
+			radial1.setValueAnimated(rpm);
+			console.log('RPM : ', rpm);
 
-		// Set the table td text
-		$('#rpm').text(rpm);
+			// Set the table td text
+			$('#rpm').text(rpm);
+		  }
 		});
+
+
+		
 	}
 	
     function setRandomValue(gauge, range) {
@@ -253,8 +258,6 @@
         gauge.setRollAnimated(roll);
     }
 
-
-	radial1.setFrameDesign(steelseries.FrameDesign.TILTED_BLACK);
 	
     function setFrameDesign(sel) {
         switch (sel.options[sel.selectedIndex].value) {

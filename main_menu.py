@@ -80,6 +80,7 @@ import logging, sys
 import msvcrt
 from pyftdi.ftdi import Ftdi
 import binascii
+import json
 
 fault_code_void="Unknown"
 fault_code_01_01="1-1 egr inlet throttle diagnostics (L)"
@@ -629,7 +630,7 @@ def get_faults():
     response=send_packet(b"\x02\x21\x3b",39)
     for i in range(0,36):
         for j in range(0,8):
-            if ord(response[i+3]) & int(pow(2,int(j))) != 0:
+            if response[i+3] & int(pow(2,int(j))) != 0:
                 fault_list.append(int(i)*8+int(j))
                 
     return fault_list
@@ -802,6 +803,8 @@ while (True):
         print("\t\tpaul@discotd5.com")
         print("\thttp://stackoverflow.com/questions/12090503")
         print("\t\thttp://stackoverflow.com/users/300783/thomas")
+        
+        
         print("\n")
         print(" Serie Portu erabilgarriak:")
 
@@ -833,8 +836,7 @@ while (True):
         ser.close()  
         current_mode=0
         time.sleep(logout_sleep)
-        
-        time.sleep(0.5)
+       
         
         menu_code=1
         continue
@@ -907,6 +909,12 @@ while (True):
         ap1, ap2 = get_pressures()
         pb1,pb2,pb3,pb4,pb5=get_power_balance()
         fu1,fu2,fu3,fu4,fu5,fu6,fu7,fu8=get_fu()
+        
+        data = {"fuelling": {"rpm":  rpm ,"b_voltage":  b_voltage }}
+        with open('SteelSeries-Canvas-master\data.json', 'w') as f:
+            json.dump(data, f)
+            
+        f.close
         
         if msvcrt.kbhit():
             menu_code = int(msvcrt.getch())
@@ -990,77 +998,77 @@ while (True):
             time.sleep(0.1)
             response=send_packet(b"\x02\x3e\x01",3)
             if msvcrt.kbhit():
-                if (msvcrt.getch()=="a" or msvcrt.getch()=="A"):
+                entrada=msvcrt.getch()
+                if (entrada.decode('latin1')=="a" or entrada.decode('latin1')=="A"):
                     response=send_packet(b"\x03\x30\xa3\xff",4)
                     print("\n   Testing AC Clutch")
                     time.sleep(2)
                     break
-                elif (msvcrt.getch()=="b" or msvcrt.getch()=="B"):
+                elif (entrada.decode('latin1')=="b" or entrada.decode('latin1')=="B"):
                     response=send_packet(b"\x03\x30\xa4\xff",4)
                     print("\n   Testing AC FAN")
                     time.sleep(2)
                     break
-                elif (msvcrt.getch()=="c" or msvcrt.getch()=="C"):
+                elif (entrada.decode('latin1')=="c" or entrada.decode('latin1')=="C"):
                     response=send_packet(b"\x03\x30\xa2\xff",4)
                     print("\n   Testing MIL Lamp")
                     time.sleep(2)
                     break
-                elif (msvcrt.getch()=="d" or msvcrt.getch()=="D"):
+                elif (entrada.decode('latin1')=="d" or entrada.decode('latin1')=="D"):
                     response=send_packet(b"\x03\x30\xa1\xff",4)
                     print("\n   Testing Fuel Pump")
                     time.sleep(2)
                     break
-                elif (msvcrt.getch()=="e" or msvcrt.getch()=="E"):
+                elif (entrada.decode('latin1')=="e" or entrada.decode('latin1')=="E"):
                     response=send_packet(b"\x03\x30\xb3\xff",4)
                     print("\n   Testing Glow Plugs")
                     time.sleep(2)
                     break
-                elif (msvcrt.getch()=="f" or msvcrt.getch()=="F"):
+                elif (entrada.decode('latin1')=="f" or entrada.decode('latin1')=="F"):
                     response=send_packet(b"\x03\x30\xb7\xff",4)
                     print("\n   Testing Pulse Rev Counter")
                     time.sleep(2)
                     break
-                elif (msvcrt.getch()=="g" or msvcrt.getch()=="G"):
+                elif (entrada.decode('latin1')=="g" or entrada.decode('latin1')=="G"):
                     response=send_packet(b"\x07\x30\xbe\xff\x00\x0a\x13\x88",4)
                     print("\n   Testing Turbo Wastegate Modulator")
                     time.sleep(2)
                     break
-                elif (msvcrt.getch()=="h" or msvcrt.getch()=="H"):
+                elif (entrada.decode('latin1')=="h" or entrada.decode('latin1')=="H"):
                     response=send_packet(b"\x03\x30\xba\xff",4)
                     print("\n   Testing Temperature Gauge")
                     time.sleep(2)
                     break
-                elif (msvcrt.getch()=="i" or msvcrt.getch()=="I"):
+                elif (entrada.decode('latin1')=="i" or entrada.decode('latin1')=="I"):
                     response=send_packet(b"\x07\x30\xbd\xff\x00\xfa\x13\x88",4)
                     print("\n   Testing EGR Inlet Modulator")
                     time.sleep(2)
                     break
-                elif (msvcrt.getch()=="j" or msvcrt.getch()=="J"):
+                elif (entrada.decode('latin1')=="j" or entrada.decode('latin1')=="J"):
                     response=send_packet(b"\x03\x31\xc2\x01",4)
                     print("\n   Testing Injector 1")
                     time.sleep(2)
                     break
-                elif (msvcrt.getch()=="k" or msvcrt.getch()=="K"):
+                elif (entrada.decode('latin1')=="k" or entrada.decode('latin1')=="K"):
                     response=send_packet(b"\x03\x31\xc2\x02",4)
                     print("\n   Testing Injector 2")
                     time.sleep(2)
                     break
-                elif (msvcrt.getch()=="l" or msvcrt.getch()=="L"):
+                elif (entrada.decode('latin1')=="l" or entrada.decode('latin1')=="L"):
                     response=send_packet(b"\x03\x31\xc2\x03",4)
                     print("\n   Testing Injector 3")
                     time.sleep(2)
                     break
-                elif (msvcrt.getch()=="m" or msvcrt.getch()=="M"):
+                elif (entrada.decode('latin1')=="m" or entrada.decode('latin1')=="M"):
                     response=send_packet(b"\x03\x31\xc2\x04",4)
                     print("\n   Testing Injector 4")
                     time.sleep(2)
                     break
-                elif (msvcrt.getch()=="n" or msvcrt.getch()=="N"):
+                elif (entrada.decode('latin1')=="n" or entrada.decode('latin1')=="N"):
                     response=send_packet(b"\x03\x31\xc2\x05",4)
                     print("\n   Testing Injector 5")
                     time.sleep(2)
                     break                    
-                entrada=msvcrt.getch()
                 try:
                     menu_code = int(entrada)
                 except:
@@ -1134,13 +1142,14 @@ while (True):
             time.sleep(1)
             response=send_packet(b"\x02\x3e\x01",3)
             if msvcrt.kbhit():
-                if (msvcrt.getch()=="5"): #Refresh
+                entrada=msvcrt.getch()
+                if (entrada.decode('latin1')=="5"): #Refresh
                     break
-                if (msvcrt.getch()=="C" or msvcrt.getch()=="c"): #Clear Faults
+                if (entrada.decode('latin1')=="C" or entrada.decode('latin1')=="c"): #Clear Faults
                     response=send_packet(b"\x14\x31\xdd\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",4)
                     print("|Clearing Faults|")
                     break
-                entrada=msvcrt.getch()
+                
                 try:
                     menu_code = int(entrada)
                 except:
